@@ -12,7 +12,7 @@ import { growthAgent } from './agents/growthAgent';
 import { contentAgent } from './agents/contentAgent';
 import { analyticsAgent } from './agents/analyticsAgent';
 import { TabType, Platform, TrendOpportunity } from './types';
-import { Sparkles, Send, RefreshCw, Zap, Cpu, Database } from 'lucide-react';
+import { Send, RefreshCw, Zap, Cpu, Database } from 'lucide-react';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<TabType>('overview');

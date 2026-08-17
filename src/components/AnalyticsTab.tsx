@@ -1,6 +1,6 @@
 import React from 'react';
 import { PerformanceMetric } from '../types';
-import { Sparkles, TrendingUp, BarChart3, Database, CheckCircle2 } from 'lucide-react';
+import { Sparkles, BarChart3, Database, CheckCircle2 } from 'lucide-react';
 
 interface AnalyticsTabProps {
   metrics: PerformanceMetric[];

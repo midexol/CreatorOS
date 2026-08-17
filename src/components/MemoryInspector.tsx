@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CreatorProfile, TrendOpportunity, ContentDraft, PerformanceMetric } from '../types';
-import { Database, Code2, Eye, Key } from 'lucide-react';
+import { Database, Eye, Key } from 'lucide-react';
 
 interface MemoryInspectorProps {
   profile: CreatorProfile;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { DelegationStep } from '../types';
-import { Bot, CheckCircle2, Clock, ArrowRight } from 'lucide-react';
+import { Bot, CheckCircle2, Clock } from 'lucide-react';
 
 interface DelegationTraceProps {
   steps: DelegationStep[];
