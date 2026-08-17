@@ -5,6 +5,11 @@ CreatorOS is an autonomous multi-agent AI Chief of Staff for digital creators. I
 
 ---
 
+## 🤖 AI Agent Directive Guide
+If you are an AI Coding Agent or Subagent working on this repository, read **[AGENT.md](./AGENT.md)** for full architecture, memory schemas, code maps, and execution rules.
+
+---
+
 ## 📌 Project Documentation & Role Breakdown
 For detailed technical spec, agent architecture, and the 5-person role allocation guide, read:
 👉 **[PROJECT_SPEC_AND_ROLES.md](./PROJECT_SPEC_AND_ROLES.md)**
