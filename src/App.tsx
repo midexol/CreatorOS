@@ -61,16 +61,8 @@ export function App() {
   };
 
   const handleManualGenerate = async (input: string) => {
-    const mockOpp: TrendOpportunity = {
-      id: `opp_${Date.now()}`,
-      topic: input,
-      source: "Manual Creator Input",
-      opportunityScore: 92,
-      angle: "Repurposed from creator notes",
-      category: "Tech",
-      timestamp: "Just now"
-    };
-    await contentAgent.generateDraftFromOpportunity(mockOpp, 'twitter');
+    await contentAgent.generateDraftsFromTranscript(input);
+    setActiveTab('repurpose');
     refreshState();
   };
 
