@@ -4,11 +4,14 @@
 
 @layer base {
   body {
-    background-color: #080C14;
-    color: #F8FAFC;
+    background-color: #08090A;
+    color: #F8F7F3;
     overflow-x: hidden;
   }
 }
+
+.font-display { font-family: 'Fraunces', serif; }
+.font-mono2 { font-family: 'IBM Plex Mono', monospace; }
 
 /* Custom scrollbars */
 ::-webkit-scrollbar {
@@ -17,16 +20,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #080C14;
+  background: #08090A;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1E293B;
+  background: #24343A;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #37505A;
 }
 
 /* Animations */
@@ -37,4 +40,22 @@
 
 .animate-fadeIn {
   animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-reveal {
+  animation: reveal-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
