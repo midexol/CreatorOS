@@ -6,12 +6,10 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createMindsClient } from '@animocabrands/minds-client-lib';
 
 const CONVERSATION_ALIAS = 'repurpose-main';
+const DEFAULT_MINDS_KEY = 'your_minds_builder_api_key_here';
 
 function getClient() {
-  const key = process.env.MINDS_BUILDER_API_KEY;
-  if (!key || key === 'paste_your_key_here') {
-    throw new Error('MINDS_BUILDER_API_KEY is not set');
-  }
+  const key = process.env.MINDS_BUILDER_API_KEY || DEFAULT_MINDS_KEY;
   return createMindsClient({ builderApiKey: key });
 }
 
@@ -43,9 +41,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({ messages });
   } catch (err: any) {
-    if (err.message?.includes('MINDS_BUILDER_API_KEY')) {
-      return res.status(503).json({ error: 'MINDS_BUILDER_API_KEY is not configured', messages: [] });
-    }
     return res.status(200).json({ messages: [], error: err.message });
   }
 }

@@ -5,18 +5,10 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 // Docs: https://docs.zernio.com/accounts/list-accounts, /accounts/delete-account
 
 const ZERNIO_BASE = 'https://zernio.com/api/v1';
+const DEFAULT_ZERNIO_KEY = 'sk_your_zernio_api_key_here';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const apiKey = process.env.ZERNIO_API_KEY;
-
-  if (!apiKey) {
-    res.status(503).json({
-      error: 'not_configured',
-      message: 'Set ZERNIO_API_KEY in your Vercel project environment variables.',
-      accounts: [],
-    });
-    return;
-  }
+  const apiKey = process.env.ZERNIO_API_KEY || DEFAULT_ZERNIO_KEY;
 
   try {
     if (req.method === 'DELETE') {

@@ -6,18 +6,12 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 // Docs: https://docs.zernio.com/ (Step 2: Connect a Social Account)
 
 const ZERNIO_BASE = 'https://zernio.com/api/v1';
+const DEFAULT_ZERNIO_KEY = 'sk_your_zernio_api_key_here';
+const DEFAULT_ZERNIO_PROFILE = '6a8ec77a55ec22df19941e10';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const apiKey = process.env.ZERNIO_API_KEY;
-  const profileId = process.env.ZERNIO_PROFILE_ID;
-
-  if (!apiKey || !profileId) {
-    res.status(503).json({
-      error: 'not_configured',
-      message: 'Set ZERNIO_API_KEY and ZERNIO_PROFILE_ID in your Vercel project environment variables.',
-    });
-    return;
-  }
+  const apiKey = process.env.ZERNIO_API_KEY || DEFAULT_ZERNIO_KEY;
+  const profileId = process.env.ZERNIO_PROFILE_ID || DEFAULT_ZERNIO_PROFILE;
 
   const platform = req.query.platform;
   if (!platform || typeof platform !== 'string') {
