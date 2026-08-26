@@ -1,12 +1,20 @@
 import React from 'react';
-import { ArrowUpRight, Link2, AlertTriangle } from 'lucide-react';
+import { ArrowUpRight, AlertTriangle } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 import { Reveal } from '../components/Reveal';
+import { ConnectionsIcon, XIcon, LinkedInIcon, YouTubeIcon } from '../components/Icons';
+import { Platform } from '../types';
 
 const statusMeta = {
   connected: { dot: 'bg-emerald2', label: 'Connected' },
   connecting: { dot: 'bg-amber animate-pulse', label: 'Redirecting…' },
   disconnected: { dot: 'bg-slate-500', label: 'Not connected' },
+};
+
+const PlatformLogo: React.FC<{ platformId: Platform }> = ({ platformId }) => {
+  if (platformId === 'twitter') return <XIcon size={16} className="text-white" />;
+  if (platformId === 'linkedin') return <LinkedInIcon size={16} className="text-[#0A66C2]" />;
+  return <YouTubeIcon size={16} className="text-[#FF0000]" />;
 };
 
 export const ConnectionsPage: React.FC = () => {
@@ -16,16 +24,15 @@ export const ConnectionsPage: React.FC = () => {
     <div className="space-y-6">
       <Reveal>
         <div className="flex items-center justify-between mb-2">
-          <h1 className="font-display text-2xl text-amber flex items-center gap-2">
-            <Link2 className="w-5 h-5" />
+          <h1 className="font-display text-2xl text-amber flex items-center gap-2.5">
+            <ConnectionsIcon size={22} className="text-amber" />
             Connections
           </h1>
           <span className="text-xs font-mono2 text-slate-400">{connectedCount} connected</span>
         </div>
         <p className="text-slate-400 text-sm max-w-xl">
           Connect the accounts you want CreatorOS to post to. Once connected, approved drafts publish
-          for real, and results feed back into your next batch of ideas. The free plan covers your
-          first 2 accounts.
+          live to social networks, and engagement feeds back into your next batch of ideas.
         </p>
       </Reveal>
 
@@ -34,13 +41,8 @@ export const ConnectionsPage: React.FC = () => {
           <div className="flex items-start gap-3 bg-amber/10 border border-amber/25 rounded-xl p-4">
             <AlertTriangle className="w-4 h-4 text-amber shrink-0 mt-0.5" />
             <p className="text-xs text-amber/90 leading-relaxed">
-              Real connections aren't set up yet. This needs a Zernio API key (
-              <a href="https://zernio.com/signup" target="_blank" rel="noreferrer" className="underline">
-                free to create
-              </a>
-              ), added as <code className="font-mono2">ZERNIO_API_KEY</code> and{' '}
-              <code className="font-mono2">ZERNIO_PROFILE_ID</code> in your Vercel project's environment
-              variables. See the README for the full setup.
+              Real connections aren't set up yet. Add <code className="font-mono2">ZERNIO_API_KEY</code> and{' '}
+              <code className="font-mono2">ZERNIO_PROFILE_ID</code> to your local <code className="font-mono2">.env</code> file to enable live OAuth posting.
             </p>
           </div>
         </Reveal>
@@ -52,10 +54,15 @@ export const ConnectionsPage: React.FC = () => {
           return (
             <Reveal key={p.id} delay={i * 70}>
               <div className="flex items-center justify-between py-5 border-b border-border2">
-                <div className="flex items-center gap-3">
-                  <span className={`w-2 h-2 rounded-full ${meta.dot}`} />
+                <div className="flex items-center gap-3.5">
+                  <div className="w-9 h-9 rounded-xl bg-white/[0.05] border border-border2 flex items-center justify-center shrink-0">
+                    <PlatformLogo platformId={p.id} />
+                  </div>
                   <div>
-                    <p className="text-sm text-slate-100">{p.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-slate-100">{p.name}</p>
+                      <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+                    </div>
                     <p className="text-xs text-slate-500 font-mono2 mt-0.5">{meta.label}</p>
                   </div>
                 </div>
@@ -70,7 +77,7 @@ export const ConnectionsPage: React.FC = () => {
                 {p.status === 'disconnected' && (
                   <button
                     onClick={() => connectPlatform(p.id)}
-                    className="flex items-center gap-1.5 text-xs font-medium bg-slate-100 text-[#08090A] px-3.5 py-1.5 rounded-lg hover:bg-white transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-medium bg-slate-100 text-[#08090A] px-4 py-1.5 rounded-lg hover:bg-white transition-colors shadow-sm"
                   >
                     <ArrowUpRight className="w-3.5 h-3.5" />
                     Connect

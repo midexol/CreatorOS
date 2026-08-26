@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
-import { Cpu, CheckCircle, Send, Sparkles, AlertCircle } from 'lucide-react';
+import { CheckCircle, Send, Sparkles, AlertCircle } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 import { Reveal } from '../components/Reveal';
+import { ContentIcon, XIcon, LinkedInIcon, YouTubeIcon } from '../components/Icons';
+import { Platform } from '../types';
 
 const platformLabel: Record<string, string> = {
   twitter: 'X / Twitter thread',
   linkedin: 'LinkedIn post',
   youtube_shorts: 'YT Shorts script',
+};
+
+const PlatformBadgeLogo: React.FC<{ platformId: Platform }> = ({ platformId }) => {
+  if (platformId === 'twitter') return <XIcon size={12} className="text-white inline mr-1.5" />;
+  if (platformId === 'linkedin') return <LinkedInIcon size={12} className="text-[#0A66C2] inline mr-1.5" />;
+  return <YouTubeIcon size={12} className="text-[#FF0000] inline mr-1.5" />;
 };
 
 export const ContentPage: React.FC = () => {
@@ -27,8 +35,8 @@ export const ContentPage: React.FC = () => {
     <div className="space-y-6">
       <Reveal>
         <div className="bg-panel/40 border border-border2 p-6 rounded-2xl backdrop-blur-xl">
-          <div className="flex items-center gap-2 mb-3">
-            <Cpu className="w-5 h-5 text-amber" />
+          <div className="flex items-center gap-2.5 mb-3">
+            <ContentIcon size={22} className="text-amber" />
             <h1 className="text-xl font-display text-amber">Content agent</h1>
           </div>
           <p className="text-xs text-slate-400 mb-4 max-w-xl">
@@ -45,7 +53,7 @@ export const ContentPage: React.FC = () => {
             />
             <button
               type="submit"
-              className="flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-medium px-5 py-2.5 rounded-xl text-xs transition-all"
+              className="flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-medium px-5 py-2.5 rounded-xl text-xs transition-all shadow-sm"
             >
               <Sparkles className="w-4 h-4" />
               Repurpose
@@ -67,7 +75,8 @@ export const ContentPage: React.FC = () => {
             <div className="grid md:grid-cols-[1fr_auto] gap-6 px-1 py-6 border-b border-border2 items-start">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-md bg-teal/10 text-teal border border-teal/25">
+                  <span className="inline-flex items-center text-[10px] font-mono uppercase px-2.5 py-1 rounded-md bg-teal/10 text-teal border border-teal/25">
+                    <PlatformBadgeLogo platformId={draft.platform} />
                     {platformLabel[draft.platform]}
                   </span>
                   <span
@@ -81,18 +90,18 @@ export const ContentPage: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="bg-canvas/50 p-3 rounded-xl border border-border2">
+                <div className="bg-canvas/50 p-3.5 rounded-xl border border-border2">
                   <div className="text-[10px] uppercase font-mono text-slate-500 mb-1">Memory-optimized hook</div>
                   <p className="text-xs font-medium text-amber">{draft.hook}</p>
                 </div>
 
-                <div className="bg-canvas/30 p-3 rounded-xl border border-border2">
+                <div className="bg-canvas/30 p-3.5 rounded-xl border border-border2">
                   <div className="text-[10px] uppercase font-mono text-slate-500 mb-1">Body</div>
                   <p className="text-xs text-slate-300 whitespace-pre-wrap font-mono2 leading-relaxed">{draft.body}</p>
                 </div>
 
                 {draft.cta && (
-                  <div className="text-[11px] text-slate-300 bg-white/[0.03] p-2 rounded-lg border border-border2">
+                  <div className="text-[11px] text-slate-300 bg-white/[0.03] p-2.5 rounded-lg border border-border2">
                     <strong className="text-slate-100">CTA:</strong> {draft.cta}
                   </div>
                 )}
@@ -107,7 +116,7 @@ export const ContentPage: React.FC = () => {
                 {draft.status === 'pending_approval' ? (
                   <button
                     onClick={() => approveDraft(draft.id)}
-                    className="flex items-center gap-1.5 bg-amber hover:bg-amber-soft text-[#08090A] text-xs font-medium py-1.5 px-4 rounded-xl transition-all whitespace-nowrap"
+                    className="flex items-center gap-1.5 bg-amber hover:bg-amber-soft text-[#08090A] text-xs font-medium py-2 px-4 rounded-xl transition-all whitespace-nowrap shadow-sm"
                   >
                     <CheckCircle className="w-4 h-4" />
                     Approve & publish
