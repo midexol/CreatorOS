@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Brain } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { AmbientBackground } from './components/AmbientBackground';
 import { NotificationBell } from './components/NotificationBell';
+import { MindsMemoryInspector } from './components/MindsMemoryInspector';
 import { DashboardProvider, useDashboard } from './context/DashboardContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Landing } from './pages/Landing';
@@ -14,6 +17,8 @@ import { ConnectionsPage } from './pages/ConnectionsPage';
 
 function DashboardShell() {
   const { notifications, user, logout } = useDashboard();
+  const [isMemoryOpen, setIsMemoryOpen] = useState(false);
+
   return (
     <div className="min-h-screen text-slate-100 flex relative font-body">
       <AmbientBackground />
@@ -28,8 +33,17 @@ function DashboardShell() {
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsMemoryOpen(true)}
+              className="flex items-center gap-2 text-xs font-medium text-teal bg-teal/10 hover:bg-teal/20 px-3 py-1.5 rounded-xl border border-teal/30 transition-all shadow-sm"
+            >
+              <Brain className="w-3.5 h-3.5 text-teal animate-pulse" />
+              <span>Minds Memory Engine</span>
+            </button>
+
             <NotificationBell notifications={notifications} />
+
             <button
               onClick={logout}
               className="text-xs text-slate-400 hover:text-slate-100 px-3 py-1.5 rounded-lg border border-border2 hover:bg-white/[0.05] transition-colors"
@@ -56,6 +70,8 @@ function DashboardShell() {
           </div>
         </div>
       </main>
+
+      <MindsMemoryInspector isOpen={isMemoryOpen} onClose={() => setIsMemoryOpen(false)} />
     </div>
   );
 }
