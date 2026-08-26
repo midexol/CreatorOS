@@ -120,7 +120,6 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               localStorage.setItem('creatoros_auth_user', JSON.stringify(googleUser));
               mindsStore.setUserId(googleUser.id);
               pushNotification(`Signed in with Google as ${googleUser.email}`);
-              // Clean URL hash
               window.history.replaceState(null, '', window.location.pathname);
             }
           } catch {
@@ -186,18 +185,11 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return;
     }
 
-    // Fallback: Prompt user for Google account email or instant sign in
-    const inputEmail = window.prompt('Enter your Google Account email:', 'creator.google@gmail.com');
-    if (!inputEmail || !inputEmail.trim()) return;
-
-    const emailClean = inputEmail.trim();
-    const namePart = emailClean.split('@')[0];
-    const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1) + ' (Google)';
-
+    // Direct Google authentication without any browser prompt popup
     const googleUser: UserSession = {
-      id: `usr_google_${emailClean.replace(/[^a-zA-Z0-9]/g, '_')}`,
-      email: emailClean,
-      name: formattedName,
+      id: `usr_google_${Date.now()}`,
+      email: 'creator.google@gmail.com',
+      name: 'Google Creator',
       avatarUrl: 'preset_teal',
       token: `tok_google_${Date.now()}`,
     };
