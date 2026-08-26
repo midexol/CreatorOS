@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Mail, Lock, User, ArrowRight, UserCheck, Plus } from 'lucide-react';
+import { X, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 
 interface AuthModalProps {
@@ -35,8 +35,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
   const navigate = useNavigate();
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [showGooglePicker, setShowGooglePicker] = useState(false);
-  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
-  const [showCustomEmailInput, setShowCustomEmailInput] = useState(false);
+  const [googleEmailInput, setGoogleEmailInput] = useState('');
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -69,10 +68,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
     }
   };
 
-  const handleSelectGoogleAccount = async (targetEmail: string, targetName?: string) => {
+  const handleGoogleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!googleEmailInput.trim()) return;
+    setError('');
     setLoading(true);
+
     try {
-      await loginWithGoogle(targetEmail, targetName);
+      const cleanEmail = googleEmailInput.trim();
+      const derivedName = cleanEmail.split('@')[0].replace(/[^a-zA-Z]/g, ' ');
+      const formattedName = derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
+      await loginWithGoogle(cleanEmail, formattedName);
       setShowGooglePicker(false);
       onClose();
       navigate('/dashboard');
@@ -83,15 +89,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
     }
   };
 
-  const handleCustomGoogleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customGoogleEmail.trim()) return;
-    const cleanEmail = customGoogleEmail.trim();
-    const derivedName = cleanEmail.split('@')[0].replace(/[^a-zA-Z]/g, ' ');
-    const formattedName = derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
-    handleSelectGoogleAccount(cleanEmail, formattedName);
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
       <div className="relative w-full max-w-md bg-[#0F172A] border border-border2 rounded-2xl p-6 shadow-2xl space-y-5 text-slate-100">
@@ -100,14 +97,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
           <div>
             <h2 className="text-lg font-display text-slate-50">
               {showGooglePicker
-                ? 'Choose a Google Account'
+                ? 'Sign in with Google'
                 : mode === 'signup'
                 ? 'Create your CreatorOS account'
                 : 'Welcome back to CreatorOS'}
             </h2>
             <p className="text-xs text-slate-400 font-mono2">
               {showGooglePicker
-                ? 'Select an account to continue to CreatorOS'
+                ? 'Enter your Google Account email to continue to CreatorOS'
                 : mode === 'signup'
                 ? 'Sign up to manage multi-platform AI scheduling'
                 : 'Sign in to access your agents and content planner'}
@@ -117,7 +114,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
             onClick={() => {
               if (showGooglePicker) {
                 setShowGooglePicker(false);
-                setShowCustomEmailInput(false);
               } else {
                 onClose();
               }
@@ -136,71 +132,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
 
         {/* Google Account Selector Screen */}
         {showGooglePicker ? (
-          <div className="space-y-3 py-1">
-            <div className="space-y-2">
-              {/* Primary Google User Account */}
-              <button
-                onClick={() => handleSelectGoogleAccount('okunolaolamide7@gmail.com', 'Okunola Olamide')}
-                disabled={loading}
-                className="w-full flex items-center justify-between bg-canvas/80 hover:bg-white/[0.08] border border-border2 hover:border-amber/50 p-3.5 rounded-xl transition-all group text-left shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-teal/20 border border-teal/40 flex items-center justify-center font-bold text-teal text-sm shrink-0">
-                    O
-                  </div>
-                  <div className="truncate">
-                    <span className="font-semibold text-sm text-slate-100 block group-hover:text-amber transition-colors">
-                      Okunola Olamide
-                    </span>
-                    <span className="text-xs text-slate-400 truncate font-mono2 block">
-                      okunolaolamide7@gmail.com
-                    </span>
-                  </div>
-                </div>
-                <UserCheck className="w-4 h-4 text-emerald2 opacity-80" />
-              </button>
-
-              {/* Toggle Custom Google Email Input */}
-              {!showCustomEmailInput ? (
-                <button
-                  onClick={() => setShowCustomEmailInput(true)}
-                  className="w-full flex items-center gap-3 bg-canvas/40 hover:bg-white/[0.04] border border-border2 p-3.5 rounded-xl transition-all text-xs text-slate-300 font-medium"
-                >
-                  <div className="w-9 h-9 rounded-full bg-white/5 border border-border2 flex items-center justify-center text-slate-400">
-                    <Plus className="w-4 h-4" />
-                  </div>
-                  <span>Use another Google account</span>
-                </button>
-              ) : (
-                <form onSubmit={handleCustomGoogleSubmit} className="pt-2 space-y-3">
-                  <label className="block text-xs font-mono text-slate-300">Enter Google Email:</label>
-                  <input
-                    type="email"
-                    required
-                    autoFocus
-                    value={customGoogleEmail}
-                    onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                    placeholder="your.email@gmail.com"
-                    className="w-full bg-canvas border border-border2 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50"
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-amber hover:bg-amber-soft text-[#08090A] font-semibold py-2.5 px-4 rounded-xl text-xs transition-all shadow-sm"
-                  >
-                    Continue with this Google Email
-                  </button>
-                </form>
-              )}
+          <form onSubmit={handleGoogleSubmit} className="space-y-4 py-1">
+            <div>
+              <label className="block text-xs font-mono text-slate-300 mb-1.5">
+                Your Google Account Email
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                <input
+                  type="email"
+                  required
+                  autoFocus
+                  value={googleEmailInput}
+                  onChange={(e) => setGoogleEmailInput(e.target.value)}
+                  placeholder="your.email@gmail.com"
+                  className="w-full bg-canvas border border-border2 rounded-xl pl-10 pr-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
+                />
+              </div>
             </div>
 
             <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-semibold py-3 px-4 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50"
+            >
+              <GoogleLogo size={16} />
+              <span>Continue to Dashboard</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+            <button
+              type="button"
               onClick={() => setShowGooglePicker(false)}
               className="w-full text-center text-xs text-slate-400 hover:text-slate-200 pt-2 font-mono2"
             >
               ← Back to standard login
             </button>
-          </div>
+          </form>
         ) : (
           <>
             {/* Google OAuth Trigger Button */}

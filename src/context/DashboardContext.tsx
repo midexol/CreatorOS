@@ -172,8 +172,9 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const loginWithGoogle = async (customEmail?: string, customName?: string) => {
-    const targetEmail = customEmail || 'okunolaolamide7@gmail.com';
-    const namePart = customName || 'Okunola Olamide';
+    const targetEmail = customEmail?.trim() || 'google.user@gmail.com';
+    const rawName = customName || targetEmail.split('@')[0];
+    const namePart = rawName.charAt(0).toUpperCase() + rawName.slice(1);
 
     const googleUser: UserSession = {
       id: `usr_google_${targetEmail.replace(/[^a-zA-Z0-9]/g, '_')}`,
