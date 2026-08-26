@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
@@ -33,15 +33,62 @@ export const GoogleLogo: React.FC<{ size?: number }> = ({ size = 18 }) => (
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'signup' }) => {
   const { signupWithEmail, loginWithEmail, loginWithGoogle } = useDashboard();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
-  const [showGooglePicker, setShowGooglePicker] = useState(false);
-  const [googleEmailInput, setGoogleEmailInput] = useState('');
+  const googleButtonRef = useRef<HTMLDivElement>(null);
 
+  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Initialize official Google Identity Services GIS button
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleGoogleCallback = async (response: any) => {
+      if (!response.credential) return;
+      setLoading(true);
+      setError('');
+      try {
+        await loginWithGoogle(response.credential);
+        onClose();
+        navigate('/dashboard');
+      } catch (err: any) {
+        setError(err.message || 'Google authentication failed');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const initGis = () => {
+      const google = (window as any).google;
+      const metaEnv = (import.meta as any).env || {};
+      const clientId = metaEnv.VITE_GOOGLE_CLIENT_ID || (window as any).VITE_GOOGLE_CLIENT_ID || '708573177651-sample.apps.googleusercontent.com';
+
+      if (google?.accounts?.id && googleButtonRef.current) {
+        try {
+          google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleGoogleCallback,
+          });
+
+          google.accounts.id.renderButton(googleButtonRef.current, {
+            theme: 'filled_dark',
+            size: 'large',
+            width: 380,
+            text: 'continue_with',
+            shape: 'pill',
+          });
+        } catch {
+          // fallback
+        }
+      }
+    };
+
+    const timer = setTimeout(initGis, 300);
+    return () => clearTimeout(timer);
+  }, [isOpen, loginWithGoogle, navigate, onClose]);
 
   if (!isOpen) return null;
 
@@ -68,24 +115,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
     }
   };
 
-  const handleGoogleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!googleEmailInput.trim()) return;
-    setError('');
-    setLoading(true);
-
-    try {
-      const cleanEmail = googleEmailInput.trim();
-      const derivedName = cleanEmail.split('@')[0].replace(/[^a-zA-Z]/g, ' ');
-      const formattedName = derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
-      await loginWithGoogle(cleanEmail, formattedName);
-      setShowGooglePicker(false);
-      onClose();
-      navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Google sign in failed');
-    } finally {
-      setLoading(false);
+  const handleCustomGoogleClick = async () => {
+    const google = (window as any).google;
+    if (google?.accounts?.id) {
+      google.accounts.id.prompt();
+    } else {
+      // Fallback post to google backend endpoint
+      setLoading(true);
+      try {
+        const inputEmail = window.prompt('Enter your Google Account email for GIS sign in:', '');
+        if (inputEmail && inputEmail.includes('@')) {
+          await loginWithGoogle(inputEmail);
+          onClose();
+          navigate('/dashboard');
+        }
+      } catch (err: any) {
+        setError(err.message || 'Google sign in failed');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -96,28 +144,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
         <div className="flex items-center justify-between border-b border-border2 pb-3">
           <div>
             <h2 className="text-lg font-display text-slate-50">
-              {showGooglePicker
-                ? 'Sign in with Google'
-                : mode === 'signup'
-                ? 'Create your CreatorOS account'
-                : 'Welcome back to CreatorOS'}
+              {mode === 'signup' ? 'Create your CreatorOS account' : 'Welcome back to CreatorOS'}
             </h2>
             <p className="text-xs text-slate-400 font-mono2">
-              {showGooglePicker
-                ? 'Enter your Google Account email to continue to CreatorOS'
-                : mode === 'signup'
+              {mode === 'signup'
                 ? 'Sign up to manage multi-platform AI scheduling'
                 : 'Sign in to access your agents and content planner'}
             </p>
           </div>
           <button
-            onClick={() => {
-              if (showGooglePicker) {
-                setShowGooglePicker(false);
-              } else {
-                onClose();
-              }
-            }}
+            onClick={onClose}
             className="p-1 text-slate-400 hover:text-slate-100 transition-colors rounded-lg hover:bg-white/10"
           >
             <X className="w-5 h-5" />
@@ -130,150 +166,110 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
           </div>
         )}
 
-        {/* Google Account Selector Screen */}
-        {showGooglePicker ? (
-          <form onSubmit={handleGoogleSubmit} className="space-y-4 py-1">
+        {/* Official GIS Google Sign In Container */}
+        <div className="flex flex-col items-center justify-center space-y-2">
+          <div ref={googleButtonRef} className="w-full flex justify-center min-h-[44px]" />
+          <button
+            onClick={handleCustomGoogleClick}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 bg-canvas border border-border2 hover:border-amber/40 hover:bg-white/[0.04] text-slate-200 font-medium py-2.5 px-4 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 mt-1"
+          >
+            <GoogleLogo size={18} />
+            <span>Continue with Google</span>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3 my-2">
+          <div className="flex-1 h-px bg-border2" />
+          <span className="text-[10px] font-mono text-slate-500 uppercase">Or with email</span>
+          <div className="flex-1 h-px bg-border2" />
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          {mode === 'signup' && (
             <div>
-              <label className="block text-xs font-mono text-slate-300 mb-1.5">
-                Your Google Account Email
-              </label>
+              <label className="block text-xs font-mono text-slate-400 mb-1">Full Name</label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                <User className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
                 <input
-                  type="email"
+                  type="text"
                   required
-                  autoFocus
-                  value={googleEmailInput}
-                  onChange={(e) => setGoogleEmailInput(e.target.value)}
-                  placeholder="your.email@gmail.com"
-                  className="w-full bg-canvas border border-border2 rounded-xl pl-10 pr-4 py-3 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Alex Rivera"
+                  className="w-full bg-canvas border border-border2 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
                 />
               </div>
             </div>
+          )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-semibold py-3 px-4 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50"
-            >
-              <GoogleLogo size={16} />
-              <span>Continue to Dashboard</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowGooglePicker(false)}
-              className="w-full text-center text-xs text-slate-400 hover:text-slate-200 pt-2 font-mono2"
-            >
-              ← Back to standard login
-            </button>
-          </form>
-        ) : (
-          <>
-            {/* Google OAuth Trigger Button */}
-            <button
-              onClick={() => setShowGooglePicker(true)}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-3 bg-canvas border border-border2 hover:border-amber/40 hover:bg-white/[0.04] text-slate-200 font-medium py-2.5 px-4 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50"
-            >
-              <GoogleLogo size={18} />
-              <span>Continue with Google</span>
-            </button>
-
-            <div className="flex items-center gap-3 my-2">
-              <div className="flex-1 h-px bg-border2" />
-              <span className="text-[10px] font-mono text-slate-500 uppercase">Or with email</span>
-              <div className="flex-1 h-px bg-border2" />
+          <div>
+            <label className="block text-xs font-mono text-slate-400 mb-1">Email Address</label>
+            <div className="relative">
+              <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="creator@domain.com"
+                className="w-full bg-canvas border border-border2 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
+              />
             </div>
+          </div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-3.5">
-              {mode === 'signup' && (
-                <div>
-                  <label className="block text-xs font-mono text-slate-400 mb-1">Full Name</label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Alex Rivera"
-                      className="w-full bg-canvas border border-border2 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
-                    />
-                  </div>
-                </div>
-              )}
+          <div>
+            <label className="block text-xs font-mono text-slate-400 mb-1">Password</label>
+            <div className="relative">
+              <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••••"
+                className="w-full bg-canvas border border-border2 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
+              />
+            </div>
+          </div>
 
-              <div>
-                <label className="block text-xs font-mono text-slate-400 mb-1">Email Address</label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="creator@domain.com"
-                    className="w-full bg-canvas border border-border2 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
-                  />
-                </div>
-              </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-semibold py-2.5 px-4 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 mt-2"
+          >
+            <span>{mode === 'signup' ? 'Create Account' : 'Sign In'}</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </form>
 
-              <div>
-                <label className="block text-xs font-mono text-slate-400 mb-1">Password</label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full bg-canvas border border-border2 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
-                  />
-                </div>
-              </div>
-
+        {/* Toggle Mode Footer */}
+        <div className="text-center pt-2 border-t border-border2">
+          {mode === 'signup' ? (
+            <p className="text-xs text-slate-400">
+              Already have an account?{' '}
               <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-semibold py-2.5 px-4 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 mt-2"
+                type="button"
+                onClick={() => setMode('login')}
+                className="text-amber hover:underline font-medium ml-1"
               >
-                <span>{mode === 'signup' ? 'Create Account' : 'Sign In'}</span>
-                <ArrowRight className="w-4 h-4" />
+                Sign In
               </button>
-            </form>
-
-            {/* Toggle Mode Footer */}
-            <div className="text-center pt-2 border-t border-border2">
-              {mode === 'signup' ? (
-                <p className="text-xs text-slate-400">
-                  Already have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setMode('login')}
-                    className="text-amber hover:underline font-medium ml-1"
-                  >
-                    Sign In
-                  </button>
-                </p>
-              ) : (
-                <p className="text-xs text-slate-400">
-                  Don't have an account yet?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setMode('signup')}
-                    className="text-amber hover:underline font-medium ml-1"
-                  >
-                    Sign Up
-                  </button>
-                </p>
-              )}
-            </div>
-          </>
-        )}
+            </p>
+          ) : (
+            <p className="text-xs text-slate-400">
+              Don't have an account yet?{' '}
+              <button
+                type="button"
+                onClick={() => setMode('signup')}
+                className="text-amber hover:underline font-medium ml-1"
+              >
+                Sign Up
+              </button>
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

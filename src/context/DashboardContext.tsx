@@ -33,7 +33,7 @@ export interface UserSession {
   id: string;
   email: string;
   name: string;
-  token: string;
+  token?: string;
   avatarUrl?: string;
 }
 
@@ -51,9 +51,9 @@ interface DashboardContextValue {
   user: UserSession | null;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   signupWithEmail: (name: string, email: string, pass: string) => Promise<void>;
-  loginWithGoogle: (customEmail?: string, customName?: string) => Promise<void>;
+  loginWithGoogle: (credentialOrEmail?: string) => Promise<void>;
   updateUserAvatar: (avatarUrl: string) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   profile: CreatorProfile;
   opportunities: TrendOpportunity[];
   drafts: ContentDraft[];
@@ -95,40 +95,24 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
-  // Handle Google OAuth hash or token callback on page load
+  // Verify and sync server-side request session from HTTP-Only cookie on mount
   useEffect(() => {
-    const handleGoogleHashCallback = async () => {
-      const hash = window.location.hash;
-      if (hash.includes('access_token=')) {
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get('access_token');
-        if (accessToken) {
-          try {
-            const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-              headers: { Authorization: `Bearer ${accessToken}` },
-            });
-            if (userInfoRes.ok) {
-              const googleProfile = await userInfoRes.json();
-              const googleUser: UserSession = {
-                id: `usr_google_${googleProfile.sub || Date.now()}`,
-                email: googleProfile.email,
-                name: googleProfile.name || googleProfile.email.split('@')[0],
-                avatarUrl: googleProfile.picture || 'preset_teal',
-                token: accessToken,
-              };
-              setUser(googleUser);
-              localStorage.setItem('creatoros_auth_user', JSON.stringify(googleUser));
-              mindsStore.setUserId(googleUser.id);
-              pushNotification(`Signed in with Google as ${googleUser.email}`);
-              window.history.replaceState(null, '', window.location.pathname);
-            }
-          } catch {
-            // ignore
+    const checkServerSession = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && data.user) {
+            setUser(data.user);
+            localStorage.setItem('creatoros_auth_user', JSON.stringify(data.user));
+            mindsStore.setUserId(data.user.id);
           }
         }
+      } catch {
+        // ignore
       }
     };
-    handleGoogleHashCallback();
+    checkServerSession();
   }, []);
 
   useEffect(() => {
@@ -140,14 +124,19 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     refreshState();
   }, [user]);
 
-  const signupWithEmail = async (name: string, email: string, _pass: string) => {
-    const newUser: UserSession = {
-      id: `usr_${Date.now()}`,
-      email,
-      name,
-      avatarUrl: 'preset_amber',
-      token: `tok_${Date.now()}`,
-    };
+  const signupWithEmail = async (name: string, email: string, password: string) => {
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Signup failed');
+    }
+
+    const newUser: UserSession = data.user;
     setUser(newUser);
     localStorage.setItem('creatoros_auth_user', JSON.stringify(newUser));
     mindsStore.setUserId(newUser.id);
@@ -155,34 +144,44 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     pushNotification(`Account created! Welcome, ${newUser.name}`);
   };
 
-  const loginWithEmail = async (email: string, _pass: string) => {
-    const nameFromEmail = email.split('@')[0];
-    const nameFormatted = nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
-    const existingUser: UserSession = {
-      id: `usr_${email.replace(/[^a-zA-Z0-9]/g, '_')}`,
-      email,
-      name: nameFormatted,
-      avatarUrl: 'preset_amber',
-      token: `tok_${Date.now()}`,
-    };
-    setUser(existingUser);
-    localStorage.setItem('creatoros_auth_user', JSON.stringify(existingUser));
-    mindsStore.setUserId(existingUser.id);
-    pushNotification(`Welcome back, ${existingUser.name}`);
+  const loginWithEmail = async (email: string, password: string) => {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Invalid email or password.');
+    }
+
+    const authUser: UserSession = data.user;
+    setUser(authUser);
+    localStorage.setItem('creatoros_auth_user', JSON.stringify(authUser));
+    mindsStore.setUserId(authUser.id);
+    pushNotification(`Welcome back, ${authUser.name}`);
   };
 
-  const loginWithGoogle = async (customEmail?: string, customName?: string) => {
-    const targetEmail = customEmail?.trim() || 'google.user@gmail.com';
-    const rawName = customName || targetEmail.split('@')[0];
-    const namePart = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+  const loginWithGoogle = async (credentialOrEmail?: string) => {
+    const isJwt = credentialOrEmail && credentialOrEmail.split('.').length === 3;
 
-    const googleUser: UserSession = {
-      id: `usr_google_${targetEmail.replace(/[^a-zA-Z0-9]/g, '_')}`,
-      email: targetEmail,
-      name: namePart,
-      avatarUrl: 'preset_teal',
-      token: `tok_google_${Date.now()}`,
-    };
+    const payload = isJwt
+      ? { credential: credentialOrEmail }
+      : { email: credentialOrEmail || 'creator@gmail.com' };
+
+    const res = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Google authentication failed');
+    }
+
+    const googleUser: UserSession = data.user;
     setUser(googleUser);
     localStorage.setItem('creatoros_auth_user', JSON.stringify(googleUser));
     mindsStore.setUserId(googleUser.id);
@@ -197,7 +196,12 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     pushNotification('Profile avatar updated');
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // ignore
+    }
     setUser(null);
     localStorage.removeItem('creatoros_auth_user');
     mindsStore.setUserId('guest');
