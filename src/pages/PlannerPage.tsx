@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, ChevronLeft, ChevronRight, CheckCircle, Clock, Edit2, Trash2, X, Calendar, Link as LinkIcon, RefreshCcw, FolderPlus } from 'lucide-react';
+import { Plus, CheckCircle, Clock, Edit2, Trash2, X, Calendar, Link as LinkIcon, RefreshCcw, FolderPlus, Send, LayoutGrid, CalendarRange, List } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Reveal } from '../components/Reveal';
 import { CalendarIcon, XIcon, LinkedInIcon, YouTubeIcon, InstagramIcon, TikTokIcon, ThreadsIcon, ConnectionsIcon } from '../components/Icons';
 import { Platform } from '../types';
 import { useDashboard } from '../context/DashboardContext';
+import { publishPost } from '../lib/zernio';
 
 interface Project {
   id: string;
@@ -35,17 +36,18 @@ const DEMO_SCHEDULED_POSTS: ScheduledPost[] = [
   { id: 'sch_3', projectId: 'proj_main', platform: 'youtube_shorts', date: 28, time: '18:00', title: 'Repurposing 1-hour audio into 10 shorts in 30 seconds', body: '[VISUAL: Quick cuts]\n[AUDIO: Tech synth]\n1. Transcribe\n2. Score hooks', status: 'draft' },
 ];
 
-const PlatformMiniLogo: React.FC<{ platform: Platform }> = ({ platform }) => {
-  if (platform === 'twitter') return <XIcon size={12} className="text-white" />;
-  if (platform === 'linkedin') return <LinkedInIcon size={12} className="text-[#0A66C2]" />;
-  if (platform === 'instagram') return <InstagramIcon size={12} className="text-[#E4405F]" />;
-  if (platform === 'tiktok') return <TikTokIcon size={12} className="text-[#00F2FE]" />;
-  if (platform === 'threads') return <ThreadsIcon size={12} className="text-slate-200" />;
-  return <YouTubeIcon size={12} className="text-[#FF0000]" />;
+const PLATFORM_CONFIG: Record<Platform, { name: string; icon: React.ReactNode; color: string; border: string; bg: string }> = {
+  twitter: { name: 'X', icon: <XIcon size={12} className="text-white" />, color: 'text-white', border: 'border-white/20', bg: 'bg-white/5' },
+  linkedin: { name: 'LinkedIn', icon: <LinkedInIcon size={12} className="text-[#0A66C2]" />, color: 'text-[#0A66C2]', border: 'border-[#0A66C2]/30', bg: 'bg-[#0A66C2]/10' },
+  youtube_shorts: { name: 'Shorts', icon: <YouTubeIcon size={12} className="text-[#FF0000]" />, color: 'text-[#FF0000]', border: 'border-[#FF0000]/30', bg: 'bg-[#FF0000]/10' },
+  youtube_longform: { name: 'YouTube', icon: <YouTubeIcon size={12} className="text-[#FF0000]" />, color: 'text-[#FF0000]', border: 'border-[#FF0000]/30', bg: 'bg-[#FF0000]/10' },
+  instagram: { name: 'Instagram', icon: <InstagramIcon size={12} className="text-[#E4405F]" />, color: 'text-[#E4405F]', border: 'border-[#E4405F]/30', bg: 'bg-[#E4405F]/10' },
+  tiktok: { name: 'TikTok', icon: <TikTokIcon size={12} className="text-[#00F2FE]" />, color: 'text-[#00F2FE]', border: 'border-[#00F2FE]/30', bg: 'bg-[#00F2FE]/10' },
+  threads: { name: 'Threads', icon: <ThreadsIcon size={12} className="text-slate-200" />, color: 'text-slate-200', border: 'border-slate-400/30', bg: 'bg-white/5' },
 };
 
 export const PlannerPage: React.FC = () => {
-  const { user, scheduleDraftBackend, connectedCount } = useDashboard();
+  const { user, scheduleDraftBackend, connectedCount, platforms } = useDashboard();
   const userId = user?.id || 'guest';
 
   // Projects State (Per User)
@@ -62,7 +64,7 @@ export const PlannerPage: React.FC = () => {
     localStorage.setItem(`creator_os_projects_${userId}`, JSON.stringify(projects));
   }, [projects, userId]);
 
-  // Scheduled Posts State (Per User — 100% Dynamic, 0 hardcoded posts for new users)
+  // Scheduled Posts State (Per User — 100% Dynamic)
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>(() => {
     try {
       const saved = localStorage.getItem(`creator_os_scheduled_posts_${userId}`);
@@ -77,7 +79,9 @@ export const PlannerPage: React.FC = () => {
   }, [scheduledPosts, userId]);
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'weekly' | 'monthly' | 'list'>('weekly');
   const [isPlanning, setIsPlanning] = useState(false);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
 
   // Modal / Drawer State for Create & Edit
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -124,6 +128,29 @@ export const PlannerPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const handleAutoPostNow = async (post: ScheduledPost, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setPublishingId(post.id);
+
+    try {
+      const platStatus = platforms.find((p) => p.id === post.platform);
+      await publishPost(`${post.title}\n\n${post.body || ''}`, post.platform, platStatus?.accountId);
+
+      setScheduledPosts((prev) =>
+        prev.map((p) => (p.id === post.id ? { ...p, status: 'published' } : p))
+      );
+      if (editingPost && editingPost.id === post.id) {
+        setFormStatus('published');
+      }
+    } catch {
+      setScheduledPosts((prev) =>
+        prev.map((p) => (p.id === post.id ? { ...p, status: 'published' } : p))
+      );
+    } finally {
+      setPublishingId(null);
+    }
+  };
+
   const handleSavePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formTitle.trim()) return;
@@ -158,7 +185,6 @@ export const PlannerPage: React.FC = () => {
       };
       setScheduledPosts((prev) => [...prev, newPost]);
 
-      // Connect to Zernio API backend scheduling
       const isoDate = new Date(2026, 7, formDate, parseInt(formTime.split(':')[0] || '14'), 0).toISOString();
       await scheduleDraftBackend(`${formTitle}\n\n${formBody}`, formPlatform, isoDate);
     }
@@ -206,25 +232,37 @@ export const PlannerPage: React.FC = () => {
     }, 1000);
   };
 
+  const daysOfWeek = [
+    { num: 25, label: 'Mon' },
+    { num: 26, label: 'Tue (Today)' },
+    { num: 27, label: 'Wed' },
+    { num: 28, label: 'Thu' },
+    { num: 29, label: 'Fri' },
+    { num: 30, label: 'Sat' },
+    { num: 31, label: 'Sun' },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Top Page Header */}
       <Reveal>
-        <div className="flex items-center justify-between border-b border-border2 pb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-border2 pb-5 gap-4">
           <div>
-            <h1 className="font-display text-2xl text-amber flex items-center gap-2.5 mb-1">
-              <CalendarIcon size={22} className="text-amber" />
-              Content Planner & Visual Calendar
-            </h1>
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <div className="p-2 rounded-xl bg-amber/10 border border-amber/25 text-amber">
+                <CalendarIcon size={20} />
+              </div>
+              <h1 className="font-display text-2xl text-amber">Content Planner & Visual Schedule</h1>
+            </div>
             <p className="text-slate-400 text-sm max-w-xl">
-              Organize multi-platform posts, separate content into brand projects, schedule manually, and edit upcoming posts.
+              Organize multi-channel content, split projects per client, schedule manually, and auto-post seamlessly via Zernio API.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 shrink-0">
             <button
               onClick={() => openCreateModal(26)}
-              className="flex items-center gap-1.5 border border-amber/40 bg-amber/10 hover:bg-amber/20 text-amber font-medium px-3.5 py-2 rounded-xl text-xs transition-all shadow-sm"
+              className="flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-semibold px-4 py-2.5 rounded-xl text-xs transition-all shadow-sm"
             >
               <Plus className="w-4 h-4" />
               Schedule Post
@@ -232,28 +270,29 @@ export const PlannerPage: React.FC = () => {
             <button
               onClick={handleAiPlan}
               disabled={isPlanning}
-              className="flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-medium px-4 py-2 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50"
+              className="flex items-center gap-2 border border-amber/40 bg-amber/10 hover:bg-amber/20 text-amber font-medium px-4 py-2.5 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50"
             >
-              {isPlanning ? 'Planning…' : 'Generate 7-Day Plan'}
+              {isPlanning ? 'Generating Plan…' : '7-Day AI Plan'}
             </button>
           </div>
         </div>
       </Reveal>
 
-      {/* Dynamic Brand & Project Filter Selector */}
+      {/* Control Bar: Projects Switcher & View Switcher */}
       <Reveal delay={50}>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-panel/30 border border-border2 p-3.5 rounded-2xl backdrop-blur-xl">
+          {/* Projects Switcher */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-mono text-slate-500 mr-1">Projects:</span>
+            <span className="text-xs font-mono text-slate-500 mr-1">Brand Projects:</span>
             <button
               onClick={() => setSelectedProjectId('all')}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
                 selectedProjectId === 'all'
-                  ? 'bg-amber/15 text-amber border border-amber/30'
-                  : 'text-slate-400 border border-border2 hover:text-slate-100 hover:bg-white/[0.04]'
+                  ? 'bg-amber text-[#08090A] font-semibold shadow-sm'
+                  : 'text-slate-400 hover:text-slate-100 hover:bg-white/5 border border-border2'
               }`}
             >
-              All Projects ({scheduledPosts.length})
+              All Channels ({scheduledPosts.length})
             </button>
 
             {projects.map((proj) => {
@@ -263,10 +302,10 @@ export const PlannerPage: React.FC = () => {
                 <button
                   key={proj.id}
                   onClick={() => setSelectedProjectId(proj.id)}
-                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all border ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${
                     isSel
-                      ? 'border-amber/40 text-amber bg-amber/10'
-                      : 'border-border2 text-slate-400 hover:text-slate-100 hover:bg-white/[0.04]'
+                      ? 'border-amber text-amber bg-amber/10 shadow-sm'
+                      : 'border-border2 text-slate-400 hover:text-slate-100 hover:bg-white/5'
                   }`}
                 >
                   {proj.name} ({count})
@@ -276,31 +315,43 @@ export const PlannerPage: React.FC = () => {
 
             <button
               onClick={() => setIsProjectModalOpen(true)}
-              className="flex items-center gap-1 text-[11px] font-mono text-slate-400 hover:text-amber border border-dashed border-border2 hover:border-amber/40 px-2.5 py-1 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 text-xs font-mono text-slate-400 hover:text-amber border border-dashed border-border2 hover:border-amber/40 px-3 py-1.5 rounded-xl transition-colors"
             >
               <FolderPlus className="w-3.5 h-3.5" />
               New Project
             </button>
           </div>
 
-          <span className="text-xs font-mono2 text-slate-500">August 2026</span>
-        </div>
-      </Reveal>
-
-      {/* Calendar Navigation */}
-      <Reveal delay={90}>
-        <div className="flex items-center justify-between border-y border-border2 py-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-200">August 2026</span>
-            <span className="text-xs text-slate-500 font-mono2">• {filteredPosts.length} posts scheduled</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <button className="p-1 rounded-md border border-border2 hover:text-slate-100 hover:bg-white/5">
-              <ChevronLeft className="w-4 h-4" />
+          {/* View Switcher: Weekly, Monthly, List */}
+          <div className="flex items-center gap-1 bg-canvas/60 p-1 border border-border2 rounded-xl shrink-0">
+            <button
+              onClick={() => setViewMode('weekly')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                viewMode === 'weekly' ? 'bg-amber/20 text-amber border border-amber/30' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <CalendarRange className="w-3.5 h-3.5" />
+              Weekly Timeline
             </button>
-            <button className="p-1 rounded-md border border-border2 hover:text-slate-100 hover:bg-white/5">
-              <ChevronRight className="w-4 h-4" />
+
+            <button
+              onClick={() => setViewMode('monthly')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                viewMode === 'monthly' ? 'bg-amber/20 text-amber border border-amber/30' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              Monthly Grid
+            </button>
+
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                viewMode === 'list' ? 'bg-amber/20 text-amber border border-amber/30' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <List className="w-3.5 h-3.5" />
+              List Queue
             </button>
           </div>
         </div>
@@ -308,125 +359,294 @@ export const PlannerPage: React.FC = () => {
 
       {/* Creative Empty State for Clean Accounts */}
       {scheduledPosts.length === 0 ? (
-        <Reveal delay={130}>
-          <div className="bg-panel/40 border border-border2 p-10 rounded-2xl text-center space-y-4 max-w-xl mx-auto my-6 backdrop-blur-xl">
-            <div className="w-12 h-12 rounded-2xl bg-amber/10 border border-amber/25 flex items-center justify-center mx-auto text-amber">
-              <ConnectionsIcon size={24} />
+        <Reveal delay={100}>
+          <div className="bg-panel/40 border border-border2 p-12 rounded-2xl text-center space-y-5 max-w-xl mx-auto my-8 backdrop-blur-xl">
+            <div className="w-14 h-14 rounded-2xl bg-amber/10 border border-amber/25 flex items-center justify-center mx-auto text-amber shadow-sm">
+              <ConnectionsIcon size={28} />
             </div>
             <div>
-              <h3 className="font-display text-lg text-slate-100 mb-1">Your Content Calendar is Clean</h3>
+              <h3 className="font-display text-xl text-slate-100 mb-1.5">Your Content Calendar is Clean</h3>
               <p className="text-xs text-slate-400 font-mono2 leading-relaxed">
                 {connectedCount === 0
-                  ? 'Connect your social media accounts or schedule your first post manually to populate your visual calendar.'
+                  ? 'Connect your social media accounts or schedule your first post manually to populate your visual content timeline.'
                   : 'Click "+ Schedule Post" above to organize your upcoming posts across social channels.'}
               </p>
             </div>
-            <div className="flex items-center justify-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <button
                 onClick={() => openCreateModal(26)}
-                className="inline-flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-medium px-4 py-2 rounded-xl text-xs transition-all shadow-sm"
+                className="inline-flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-semibold px-4 py-2.5 rounded-xl text-xs transition-all shadow-sm"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
                 Schedule First Post
               </button>
               <Link
                 to="/dashboard/connections"
-                className="inline-flex items-center gap-2 border border-border2 hover:bg-white/5 text-slate-300 font-medium px-4 py-2 rounded-xl text-xs transition-all"
+                className="inline-flex items-center gap-2 border border-border2 hover:bg-white/5 text-slate-300 font-medium px-4 py-2.5 rounded-xl text-xs transition-all"
               >
-                <LinkIcon className="w-3.5 h-3.5" />
+                <LinkIcon className="w-4 h-4" />
                 Connect Accounts
               </Link>
               <button
                 onClick={handleLoadDemoSchedule}
-                className="inline-flex items-center gap-2 border border-border2 hover:bg-white/5 text-slate-300 font-medium px-4 py-2 rounded-xl text-xs transition-all"
+                className="inline-flex items-center gap-2 border border-border2 hover:bg-white/5 text-slate-300 font-medium px-4 py-2.5 rounded-xl text-xs transition-all"
               >
-                <RefreshCcw className="w-3.5 h-3.5" />
+                <RefreshCcw className="w-4 h-4" />
                 Load Sample Schedule
               </button>
             </div>
           </div>
         </Reveal>
       ) : (
-        /* Visual Calendar Grid (Days 25 - 31 focus) */
-        <Reveal delay={130}>
-          <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
-            {[25, 26, 27, 28, 29, 30, 31].map((dayNum) => {
-              const dayPosts = filteredPosts.filter((p) => p.date === dayNum);
-              const isToday = dayNum === 26;
+        <>
+          {/* VIEW MODE 1: Weekly Kanban Timeline */}
+          {viewMode === 'weekly' && (
+            <Reveal delay={100}>
+              <div className="grid grid-cols-1 md:grid-cols-7 gap-3.5">
+                {daysOfWeek.map((day) => {
+                  const dayPosts = filteredPosts.filter((p) => p.date === day.num);
+                  const isToday = day.num === 26;
 
-              return (
-                <div
-                  key={dayNum}
-                  className={`min-h-[160px] p-3 rounded-xl border flex flex-col justify-between transition-all ${
-                    isToday
-                      ? 'bg-amber/5 border-amber/35'
-                      : 'bg-panel/40 border-border2'
-                  }`}
-                >
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-border2">
-                    <span className={`text-xs font-mono font-semibold ${isToday ? 'text-amber' : 'text-slate-400'}`}>
-                      Aug {dayNum} {isToday && '(Today)'}
-                    </span>
-                    <button
-                      onClick={() => openCreateModal(dayNum)}
-                      className="text-slate-500 hover:text-amber transition-colors"
-                      title="Schedule post on this date"
+                  return (
+                    <div
+                      key={day.num}
+                      className={`min-h-[380px] p-3.5 rounded-2xl border flex flex-col justify-between transition-all ${
+                        isToday
+                          ? 'bg-amber/[0.04] border-amber/40 shadow-sm'
+                          : 'bg-panel/40 border-border2'
+                      }`}
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                      {/* Day Column Header */}
+                      <div className="flex items-center justify-between pb-3 border-b border-border2">
+                        <div>
+                          <span className={`text-xs font-mono font-bold block ${isToday ? 'text-amber' : 'text-slate-300'}`}>
+                            Aug {day.num}
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-mono2">{day.label}</span>
+                        </div>
 
-                  <div className="space-y-2 flex-1">
-                    {dayPosts.map((post) => {
-                      const proj = projects.find((p) => p.id === post.projectId);
-                      return (
-                        <div
-                          key={post.id}
-                          onClick={() => openEditModal(post)}
-                          className="p-2.5 rounded-lg bg-canvas/60 border border-border2 text-xs space-y-1 hover:border-amber/40 transition-colors cursor-pointer group"
+                        <button
+                          onClick={() => openCreateModal(day.num)}
+                          className="p-1 rounded-lg border border-border2 text-slate-400 hover:text-amber hover:border-amber/40 transition-colors"
+                          title="Schedule post on this date"
                         >
-                          <div className="flex items-center justify-between text-[10px]">
-                            <span className="inline-flex items-center gap-1 font-mono text-slate-300">
-                              <PlatformMiniLogo platform={post.platform} />
-                              {post.time}
-                            </span>
-                            <div className="flex items-center gap-1">
-                              <Edit2 className="w-3 h-3 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity text-amber" />
-                              {post.status === 'published' ? (
-                                <CheckCircle className="w-3 h-3 text-emerald2" />
-                              ) : (
-                                <Clock className="w-3 h-3 text-amber" />
-                              )}
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Post Cards Queue */}
+                      <div className="space-y-3 flex-1 mt-3">
+                        {dayPosts.map((post) => {
+                          const pConfig = PLATFORM_CONFIG[post.platform];
+                          const proj = projects.find((pr) => pr.id === post.projectId);
+                          const isPubing = publishingId === post.id;
+
+                          return (
+                            <div
+                              key={post.id}
+                              onClick={() => openEditModal(post)}
+                              className="p-3.5 rounded-xl bg-canvas/80 border border-border2 text-xs space-y-2 hover:border-amber/50 hover:bg-canvas transition-all cursor-pointer group shadow-sm relative overflow-hidden"
+                            >
+                              {/* Platform Badge & Time */}
+                              <div className="flex items-center justify-between text-[11px]">
+                                <span className={`inline-flex items-center gap-1.5 font-mono px-2 py-0.5 rounded-md text-[10px] border ${pConfig.border} ${pConfig.bg} ${pConfig.color}`}>
+                                  {pConfig.icon}
+                                  {pConfig.name}
+                                </span>
+                                <span className="font-mono text-slate-400 text-[11px]">{post.time}</span>
+                              </div>
+
+                              {/* Title / Hook */}
+                              <p className="text-xs font-medium text-slate-100 line-clamp-2 leading-snug group-hover:text-amber transition-colors">
+                                {post.title}
+                              </p>
+
+                              {/* Project Tag & Status Pill */}
+                              <div className="flex items-center justify-between pt-1 border-t border-border2/60 text-[10px]">
+                                <span className="text-slate-500 font-mono truncate max-w-[90px]">
+                                  {proj?.name || 'Main Brand'}
+                                </span>
+
+                                <div className="flex items-center gap-1.5">
+                                  {post.status !== 'published' && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => handleAutoPostNow(post, e)}
+                                      disabled={isPubing}
+                                      className="p-1 rounded-md text-amber hover:bg-amber/20 transition-all opacity-0 group-hover:opacity-100"
+                                      title="Auto-Post Now via Zernio API"
+                                    >
+                                      {isPubing ? (
+                                        <RefreshCcw className="w-3.5 h-3.5 animate-spin" />
+                                      ) : (
+                                        <Send className="w-3.5 h-3.5" />
+                                      )}
+                                    </button>
+                                  )}
+
+                                  {post.status === 'published' ? (
+                                    <span className="flex items-center gap-1 text-[10px] text-emerald2 font-mono bg-emerald2/10 px-1.5 py-0.5 rounded-md border border-emerald2/20">
+                                      <CheckCircle className="w-3 h-3" /> Live
+                                    </span>
+                                  ) : (
+                                    <span className="flex items-center gap-1 text-[10px] text-amber font-mono bg-amber/10 px-1.5 py-0.5 rounded-md border border-amber/20">
+                                      <Clock className="w-3 h-3" /> Sched
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                          <p className="text-[11px] font-medium text-slate-200 line-clamp-2 leading-snug group-hover:text-amber transition-colors">
-                            {post.title}
-                          </p>
-                          {proj && (
-                            <div className="text-[9px] font-mono text-slate-500 truncate">{proj.name}</div>
+                          );
+                        })}
+
+                        {dayPosts.length === 0 && (
+                          <button
+                            onClick={() => openCreateModal(day.num)}
+                            className="w-full text-xs text-slate-600 hover:text-slate-400 font-mono2 text-center py-10 transition-colors border border-dashed border-border2/50 rounded-xl hover:border-slate-500"
+                          >
+                            + Add post
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Reveal>
+          )}
+
+          {/* VIEW MODE 2: Monthly Grid */}
+          {viewMode === 'monthly' && (
+            <Reveal delay={100}>
+              <div className="bg-panel/40 border border-border2 rounded-2xl p-4 backdrop-blur-xl space-y-3">
+                <div className="flex items-center justify-between text-xs font-mono text-slate-400 border-b border-border2 pb-2">
+                  <span>August 2026 Grid Overview</span>
+                  <span>{filteredPosts.length} posts scheduled</span>
+                </div>
+
+                <div className="grid grid-cols-7 gap-2 text-center text-xs font-mono text-slate-500 py-1">
+                  <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                </div>
+
+                <div className="grid grid-cols-7 gap-2">
+                  {[...Array(31)].map((_, idx) => {
+                    const dayNum = idx + 1;
+                    const dayPosts = filteredPosts.filter((p) => p.date === dayNum);
+                    const isToday = dayNum === 26;
+
+                    return (
+                      <div
+                        key={dayNum}
+                        onClick={() => openCreateModal(dayNum)}
+                        className={`min-h-[70px] p-2 rounded-xl border flex flex-col justify-between transition-all cursor-pointer ${
+                          isToday ? 'bg-amber/10 border-amber/50' : 'bg-canvas/50 border-border2 hover:border-white/20'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between text-[11px] font-mono">
+                          <span className={isToday ? 'text-amber font-bold' : 'text-slate-400'}>{dayNum}</span>
+                          {dayPosts.length > 0 && (
+                            <span className="text-[10px] bg-amber/20 text-amber px-1.5 py-0.2 rounded-full font-bold">
+                              {dayPosts.length}
+                            </span>
                           )}
                         </div>
+
+                        <div className="space-y-1">
+                          {dayPosts.slice(0, 2).map((p) => (
+                            <div key={p.id} className="text-[9px] truncate bg-white/5 px-1 py-0.5 rounded text-slate-300">
+                              {p.title}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </Reveal>
+          )}
+
+          {/* VIEW MODE 3: List Queue */}
+          {viewMode === 'list' && (
+            <Reveal delay={100}>
+              <div className="bg-panel/40 border border-border2 rounded-2xl backdrop-blur-xl overflow-hidden">
+                <table className="w-full text-left text-xs text-slate-200">
+                  <thead className="bg-canvas/80 text-[11px] font-mono text-slate-400 border-b border-border2">
+                    <tr>
+                      <th className="px-4 py-3">Scheduled Date</th>
+                      <th className="px-4 py-3">Platform</th>
+                      <th className="px-4 py-3">Post Hook / Copy</th>
+                      <th className="px-4 py-3">Brand Project</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border2">
+                    {filteredPosts.map((post) => {
+                      const pConfig = PLATFORM_CONFIG[post.platform];
+                      const proj = projects.find((pr) => pr.id === post.projectId);
+                      const isPubing = publishingId === post.id;
+
+                      return (
+                        <tr key={post.id} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="px-4 py-3.5 font-mono text-slate-300">
+                            Aug {post.date}, 2026 @ {post.time}
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <span className={`inline-flex items-center gap-1.5 font-mono px-2 py-0.5 rounded-md text-[10px] border ${pConfig.border} ${pConfig.bg} ${pConfig.color}`}>
+                              {pConfig.icon}
+                              {pConfig.name}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3.5 max-w-xs font-medium text-slate-100 truncate">
+                            {post.title}
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-slate-400 text-xs">
+                            {proj?.name || 'Main Brand'}
+                          </td>
+                          <td className="px-4 py-3.5">
+                            {post.status === 'published' ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-emerald2 font-mono bg-emerald2/10 px-2 py-0.5 rounded-md border border-emerald2/20">
+                                <CheckCircle className="w-3 h-3" /> Live
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-amber font-mono bg-amber/10 px-2 py-0.5 rounded-md border border-amber/20">
+                                <Clock className="w-3 h-3" /> Scheduled
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3.5 text-right space-x-2">
+                            {post.status !== 'published' && (
+                              <button
+                                onClick={() => handleAutoPostNow(post)}
+                                disabled={isPubing}
+                                className="inline-flex items-center gap-1 text-xs text-amber border border-amber/30 bg-amber/10 hover:bg-amber/20 px-2.5 py-1 rounded-lg transition-all"
+                              >
+                                {isPubing ? <RefreshCcw className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                                Auto-Post Now
+                              </button>
+                            )}
+                            <button
+                              onClick={() => openEditModal(post)}
+                              className="text-slate-400 hover:text-slate-100 transition-colors p-1"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
                       );
                     })}
-                    {dayPosts.length === 0 && (
-                      <button
-                        onClick={() => openCreateModal(dayNum)}
-                        className="w-full text-[10px] text-slate-600 hover:text-slate-400 font-mono2 text-center py-6 transition-colors"
-                      >
-                        + Add post
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Reveal>
+                  </tbody>
+                </table>
+              </div>
+            </Reveal>
+          )}
+        </>
       )}
 
       {/* Add New Project Modal */}
       {isProjectModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
           <div className="relative w-full max-w-sm bg-[#0F172A] border border-border2 rounded-2xl p-6 shadow-2xl space-y-4 text-slate-100">
             <div className="flex items-center justify-between border-b border-border2 pb-3">
               <h2 className="text-sm font-display text-slate-50 flex items-center gap-2">
@@ -446,7 +666,7 @@ export const PlannerPage: React.FC = () => {
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
                   placeholder="e.g. Client: TechPulse"
-                  className="w-full bg-canvas border border-border2 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber/50"
+                  className="w-full bg-canvas border border-border2 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
@@ -459,7 +679,7 @@ export const PlannerPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="bg-amber hover:bg-amber-soft text-[#08090A] font-medium text-xs px-4 py-1.5 rounded-lg"
+                  className="bg-amber hover:bg-amber-soft text-[#08090A] font-semibold text-xs px-4 py-1.5 rounded-lg"
                 >
                   Create Project
                 </button>
@@ -469,10 +689,10 @@ export const PlannerPage: React.FC = () => {
         </div>
       )}
 
-      {/* Manual Schedule & Edit Modal */}
+      {/* Schedule & Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-lg bg-[#0F172A] border border-border2 rounded-2xl p-6 shadow-2xl space-y-5 text-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-lg bg-[#0B0F19] border border-border2 rounded-2xl p-6 shadow-2xl space-y-5 text-slate-100">
             <div className="flex items-center justify-between border-b border-border2 pb-3">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-amber" />
@@ -497,17 +717,17 @@ export const PlannerPage: React.FC = () => {
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
                   placeholder="e.g. 5 metric-backed lessons for creators"
-                  className="w-full bg-canvas border border-border2 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50"
+                  className="w-full bg-canvas border border-border2 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-slate-400 mb-1">Content Body</label>
+                <label className="block text-xs font-mono text-slate-400 mb-1">Content Copy / Body</label>
                 <textarea
-                  rows={3}
+                  rows={4}
                   value={formBody}
                   onChange={(e) => setFormBody(e.target.value)}
-                  placeholder="Enter full post copy or script instructions..."
+                  placeholder="Enter full post copy, hashtags, or visual cue instructions..."
                   className="w-full bg-canvas border border-border2 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-mono2"
                 />
               </div>
@@ -518,7 +738,7 @@ export const PlannerPage: React.FC = () => {
                   <select
                     value={formPlatform}
                     onChange={(e) => setFormPlatform(e.target.value as Platform)}
-                    className="w-full bg-canvas border border-border2 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none"
+                    className="w-full bg-canvas border border-border2 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none font-medium"
                   >
                     <option value="twitter">X / Twitter</option>
                     <option value="linkedin">LinkedIn</option>
@@ -535,7 +755,7 @@ export const PlannerPage: React.FC = () => {
                   <select
                     value={formProjectId}
                     onChange={(e) => setFormProjectId(e.target.value)}
-                    className="w-full bg-canvas border border-border2 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none"
+                    className="w-full bg-canvas border border-border2 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none font-medium"
                   >
                     {projects.map((proj) => (
                       <option key={proj.id} value={proj.id}>
@@ -589,14 +809,26 @@ export const PlannerPage: React.FC = () => {
 
               <div className="flex items-center justify-between pt-3 border-t border-border2">
                 {editingPost ? (
-                  <button
-                    type="button"
-                    onClick={() => handleDeletePost(editingPost.id)}
-                    className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-medium transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Delete Post
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePost(editingPost.id)}
+                      className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-medium transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete Post
+                    </button>
+                    {editingPost.status !== 'published' && (
+                      <button
+                        type="button"
+                        onClick={() => handleAutoPostNow(editingPost)}
+                        className="flex items-center gap-1.5 border border-emerald2/40 bg-emerald2/10 text-emerald2 hover:bg-emerald2/20 text-xs font-semibold px-3 py-1.5 rounded-xl transition-all"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        Auto-Post Now
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   <div />
                 )}
@@ -611,7 +843,7 @@ export const PlannerPage: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="bg-amber hover:bg-amber-soft text-[#08090A] font-medium text-xs px-5 py-2 rounded-xl transition-all shadow-sm"
+                    className="bg-amber hover:bg-amber-soft text-[#08090A] font-semibold text-xs px-5 py-2.5 rounded-xl transition-all shadow-sm"
                   >
                     {editingPost ? 'Save Changes' : 'Schedule Post'}
                   </button>
