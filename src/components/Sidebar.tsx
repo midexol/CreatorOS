@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
+import { LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { OrbitMark } from './OrbitMark';
 import { UserProfileSidebar } from './ui/menu';
 import { useDashboard } from '../context/DashboardContext';
@@ -19,6 +19,19 @@ export const Sidebar: React.FC = () => {
   const { user, logout } = useDashboard();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('creator_os_sidebar_collapsed');
+      return saved ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('creator_os_sidebar_collapsed', JSON.stringify(isCollapsed));
+  }, [isCollapsed]);
 
   const userProfile = {
     name: user?.name || 'Creator',
@@ -96,18 +109,42 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="relative w-64 shrink-0 border-r border-border2 h-screen sticky top-0 flex flex-col bg-panel/60 backdrop-blur-md overflow-hidden p-3 space-y-3">
-      <Link to="/" className="flex items-center gap-2.5 px-3 py-2 border-b border-border2 hover:bg-white/[0.03] transition-colors rounded-xl">
-        <OrbitMark size={26} animate={false} />
-        <span className="font-display text-sm">
-          Creator<span className="text-amber font-semibold">OS</span>
-        </span>
-      </Link>
+    <aside
+      className={`relative shrink-0 border-r border-border2 h-screen sticky top-0 flex flex-col bg-panel/60 backdrop-blur-md overflow-hidden p-2.5 space-y-2.5 transition-all duration-300 ${
+        isCollapsed ? 'w-16' : 'w-52'
+      }`}
+    >
+      {/* Sidebar Header with Brand & Collapse Button */}
+      <div className="flex items-center justify-between border-b border-border2 pb-2.5 px-1.5">
+        <Link
+          to="/"
+          className={`flex items-center gap-2 hover:bg-white/[0.03] transition-colors rounded-xl p-1 ${
+            isCollapsed && 'justify-center w-full'
+          }`}
+          title={isCollapsed ? 'CreatorOS' : undefined}
+        >
+          <OrbitMark size={24} animate={false} />
+          {!isCollapsed && (
+            <span className="font-display text-xs">
+              Creator<span className="text-amber font-semibold">OS</span>
+            </span>
+          )}
+        </Link>
+
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-1 rounded-lg text-slate-400 hover:text-amber hover:bg-white/5 transition-colors shrink-0"
+          title={isCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+        >
+          {isCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+        </button>
+      </div>
 
       <UserProfileSidebar
         user={userProfile}
         navItems={navItems}
         logoutItem={logoutItem}
+        isCollapsed={isCollapsed}
         className="flex-1 max-w-full bg-transparent border-none p-0 shadow-none"
       />
     </aside>
