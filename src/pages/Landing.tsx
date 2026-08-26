@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, TrendingUp, PenLine, BarChart3, Network, Users, Handshake } from 'lucide-react';
 import { Nav } from '../components/Nav';
 import { OrbitMark } from '../components/OrbitMark';
@@ -8,6 +8,8 @@ import { ReelBackground } from '../components/ReelBackground';
 import { DelegationTrace } from '../components/DelegationTrace';
 import { Reveal } from '../components/Reveal';
 import { DelegationStep } from '../types';
+import { useDashboard } from '../context/DashboardContext';
+import { AuthModal } from '../components/AuthModal';
 
 const exampleTrace: DelegationStep[] = [
   { id: '1', timestamp: 'now', agentName: 'Coordinator', action: 'Objective received', details: 'Goal: grow my audience', status: 'completed' },
@@ -37,6 +39,18 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 }
 
 export const Landing: React.FC = () => {
+  const { user } = useDashboard();
+  const navigate = useNavigate();
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  const handleHeroAction = () => {
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      setIsAuthOpen(true);
+    }
+  };
+
   return (
     <div className="min-h-screen text-slate-100 font-body">
       <HeroBackground />
@@ -71,14 +85,14 @@ export const Landing: React.FC = () => {
               and gets it ready for your approval — before anything goes live.
             </p>
             <div className="flex items-center gap-4">
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center gap-2 bg-amber text-[#08090A] font-medium px-5 py-3 rounded-lg hover:bg-amber-soft transition-colors"
+              <button
+                onClick={handleHeroAction}
+                className="inline-flex items-center gap-2 bg-amber text-[#08090A] font-medium px-5 py-3 rounded-xl hover:bg-amber-soft transition-all shadow-sm"
               >
-                Open dashboard
+                {user ? 'Open Dashboard' : 'Get Started with Email or Google'}
                 <ArrowRight className="w-4 h-4" />
-              </Link>
-              <a href="#how-it-works" className="inline-flex items-center gap-2 text-slate-100/90 hover:text-slate-100 transition-colors px-2 py-3">
+              </button>
+              <a href="#how-it-works" className="inline-flex items-center gap-2 text-slate-100/90 hover:text-slate-100 transition-colors px-2 py-3 text-sm">
                 See how it works
               </a>
             </div>
@@ -95,7 +109,7 @@ export const Landing: React.FC = () => {
               Every creator has the same two problems:
               <span className="text-slate-400"> burnout from repurposing, and missed timing on trends.</span>
             </h2>
-            <p className="text-slate-400 leading-relaxed max-w-xl mx-auto">
+            <p className="text-slate-400 leading-relaxed max-w-xl mx-auto text-sm">
               CreatorOS finds what's worth posting about, drafts it in your voice, and gets sharper
               every time you approve or skip a post — so you spend less time guessing.
             </p>
@@ -111,7 +125,7 @@ export const Landing: React.FC = () => {
             <h2 className="font-display text-3xl md:text-4xl tracking-tight mt-6 mb-4">
               One goal. A full agent trace.
             </h2>
-            <p className="text-slate-400">
+            <p className="text-slate-400 text-sm">
               An example run below. In the real dashboard, this happens with your own goal, for real.
             </p>
           </div>
@@ -152,7 +166,7 @@ export const Landing: React.FC = () => {
         </div>
       </section>
 
-      {/* Bottom of page — tinted reel plays behind roadmap + footer */}
+      {/* Bottom of page */}
       <div className="relative">
         <ReelBackground opacity={0.3} />
 
@@ -163,7 +177,7 @@ export const Landing: React.FC = () => {
               <h2 className="font-display text-3xl md:text-4xl tracking-tight mt-6 mb-4">
                 Here's what's live. Here's what's next.
               </h2>
-              <p className="text-slate-400">Two more agents are on the way.</p>
+              <p className="text-slate-400 text-sm">Two more agents are on the way.</p>
             </div>
           </Reveal>
           <div className="grid md:grid-cols-2 gap-4">
@@ -201,6 +215,12 @@ export const Landing: React.FC = () => {
           </div>
         </footer>
       </div>
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        initialMode="signup"
+      />
     </div>
   );
 };

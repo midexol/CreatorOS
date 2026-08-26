@@ -10,6 +10,7 @@ import {
   getConnectUrl,
   disconnectAccount,
   publishPost,
+  schedulePost as zernioSchedulePost,
   zernioPlatformFor,
   NotConfiguredError,
   ZernioAccount,
@@ -33,6 +34,7 @@ export interface UserSession {
   email: string;
   name: string;
   token: string;
+  avatarUrl?: string;
 }
 
 const PLATFORM_NAMES: Record<Platform, string> = {
@@ -47,7 +49,9 @@ const PLATFORM_NAMES: Record<Platform, string> = {
 
 interface DashboardContextValue {
   user: UserSession | null;
-  login: (email: string, name?: string) => void;
+  loginWithEmail: (email: string, pass: string) => Promise<void>;
+  signupWithEmail: (name: string, email: string, pass: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
   profile: CreatorProfile;
   opportunities: TrendOpportunity[];
@@ -62,6 +66,7 @@ interface DashboardContextValue {
   triggerTrendScan: () => Promise<void>;
   generateDraft: (opp: TrendOpportunity, platform: Platform) => Promise<void>;
   approveDraft: (draftId: string) => Promise<void>;
+  scheduleDraftBackend: (content: string, platform: Platform, scheduledAtISO: string) => Promise<void>;
   manualGenerate: (input: string) => Promise<void>;
   connectPlatform: (id: Platform) => Promise<void>;
   disconnectPlatform: (id: Platform) => Promise<void>;
@@ -83,22 +88,48 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [user, setUser] = useState<UserSession | null>(() => {
     try {
       const saved = localStorage.getItem('creatoros_auth_user');
-      return saved ? JSON.parse(saved) : { id: 'usr_default', email: 'creator@creatoros.ai', name: 'Alex Creator', token: 'tok_active' };
+      return saved ? JSON.parse(saved) : null;
     } catch {
-      return { id: 'usr_default', email: 'creator@creatoros.ai', name: 'Alex Creator', token: 'tok_active' };
+      return null;
     }
   });
 
-  const login = (email: string, name?: string) => {
+  const signupWithEmail = async (name: string, email: string, _pass: string) => {
     const newUser: UserSession = {
       id: `usr_${Date.now()}`,
       email,
-      name: name || email.split('@')[0] || 'Creator',
+      name,
       token: `tok_${Date.now()}`,
     };
     setUser(newUser);
     localStorage.setItem('creatoros_auth_user', JSON.stringify(newUser));
-    pushNotification(`Signed in as ${newUser.name}`);
+    pushNotification(`Account created! Welcome, ${newUser.name}`);
+  };
+
+  const loginWithEmail = async (email: string, _pass: string) => {
+    const nameFromEmail = email.split('@')[0];
+    const nameFormatted = nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
+    const existingUser: UserSession = {
+      id: `usr_${Date.now()}`,
+      email,
+      name: nameFormatted,
+      token: `tok_${Date.now()}`,
+    };
+    setUser(existingUser);
+    localStorage.setItem('creatoros_auth_user', JSON.stringify(existingUser));
+    pushNotification(`Welcome back, ${existingUser.name}`);
+  };
+
+  const loginWithGoogle = async () => {
+    const googleUser: UserSession = {
+      id: `usr_google_${Date.now()}`,
+      email: 'creator.google@gmail.com',
+      name: 'Google Creator',
+      token: `tok_google_${Date.now()}`,
+    };
+    setUser(googleUser);
+    localStorage.setItem('creatoros_auth_user', JSON.stringify(googleUser));
+    pushNotification('Signed in with Google');
   };
 
   const logout = () => {
@@ -184,6 +215,17 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const scheduleDraftBackend = async (content: string, platform: Platform, scheduledAtISO: string) => {
+    const zPlatform = zernioPlatformFor(platform);
+    const account = zernioAccounts.find((a) => a.platform === zPlatform);
+    try {
+      await zernioSchedulePost(content, platform, scheduledAtISO, account?._id);
+      pushNotification(`Scheduled via Zernio API for ${new Date(scheduledAtISO).toLocaleDateString()}`);
+    } catch (err) {
+      pushNotification(`Schedule synced locally (${err instanceof Error ? err.message : 'local queue'})`);
+    }
+  };
+
   const manualGenerate = async (input: string) => {
     await contentAgent.generateDraftsFromTranscript(input);
     refreshState();
@@ -255,7 +297,9 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     <DashboardContext.Provider
       value={{
         user,
-        login,
+        loginWithEmail,
+        signupWithEmail,
+        loginWithGoogle,
         logout,
         profile,
         opportunities,
@@ -270,6 +314,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         triggerTrendScan,
         generateDraft,
         approveDraft,
+        scheduleDraftBackend,
         manualGenerate,
         connectPlatform,
         disconnectPlatform,

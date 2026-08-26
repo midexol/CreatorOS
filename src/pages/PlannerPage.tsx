@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, ChevronLeft, ChevronRight, CheckCircle, Clock, Edit2, Trash2, X, Calendar } from 'lucide-react';
 import { Reveal } from '../components/Reveal';
 import { CalendarIcon, XIcon, LinkedInIcon, YouTubeIcon, InstagramIcon, TikTokIcon, ThreadsIcon } from '../components/Icons';
 import { Platform } from '../types';
+import { useDashboard } from '../context/DashboardContext';
 
 interface Project {
   id: string;
@@ -45,9 +46,22 @@ const PlatformMiniLogo: React.FC<{ platform: Platform }> = ({ platform }) => {
 };
 
 export const PlannerPage: React.FC = () => {
+  const { scheduleDraftBackend } = useDashboard();
   const [projects] = useState<Project[]>(DEFAULT_PROJECTS);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
-  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>(INITIAL_SCHEDULED);
+  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>(() => {
+    try {
+      const saved = localStorage.getItem('creator_os_scheduled_posts');
+      return saved ? JSON.parse(saved) : INITIAL_SCHEDULED;
+    } catch {
+      return INITIAL_SCHEDULED;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('creator_os_scheduled_posts', JSON.stringify(scheduledPosts));
+  }, [scheduledPosts]);
+
   const [isPlanning, setIsPlanning] = useState(false);
 
   // Modal / Drawer State for Create & Edit
@@ -91,7 +105,7 @@ export const PlannerPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSavePost = (e: React.FormEvent) => {
+  const handleSavePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formTitle.trim()) return;
 
@@ -114,7 +128,7 @@ export const PlannerPage: React.FC = () => {
         )
       );
     } else {
-      // Create new post
+      // Create new post & trigger backend schedule API
       const newPost: ScheduledPost = {
         id: `sch_${Date.now()}`,
         projectId: formProjectId,
@@ -126,6 +140,10 @@ export const PlannerPage: React.FC = () => {
         status: formStatus,
       };
       setScheduledPosts((prev) => [...prev, newPost]);
+
+      // Connect to Zernio API backend scheduling
+      const isoDate = new Date(2026, 7, formDate, parseInt(formTime.split(':')[0] || '14'), 0).toISOString();
+      await scheduleDraftBackend(`${formTitle}\n\n${formBody}`, formPlatform, isoDate);
     }
 
     setIsModalOpen(false);

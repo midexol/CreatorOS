@@ -48,14 +48,37 @@ export async function disconnectAccount(accountId: string): Promise<void> {
   await parseOrThrow(res);
 }
 
-export async function publishPost(content: string, platform: Platform, accountId: string) {
+export async function publishPost(content: string, platform: Platform, accountId?: string) {
   const res = await fetch('/api/zernio/posts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       content,
       publishNow: true,
-      platforms: [{ platform: ZERNIO_PLATFORM[platform], accountId }],
+      platforms: accountId
+        ? [{ platform: ZERNIO_PLATFORM[platform], accountId }]
+        : [{ platform: ZERNIO_PLATFORM[platform] }],
+    }),
+  });
+  return parseOrThrow(res);
+}
+
+export async function schedulePost(
+  content: string,
+  platform: Platform,
+  scheduledAtISO: string,
+  accountId?: string
+) {
+  const res = await fetch('/api/zernio/posts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      content,
+      publishNow: false,
+      scheduledAt: scheduledAtISO,
+      platforms: accountId
+        ? [{ platform: ZERNIO_PLATFORM[platform], accountId }]
+        : [{ platform: ZERNIO_PLATFORM[platform] }],
     }),
   });
   return parseOrThrow(res);
