@@ -9,6 +9,7 @@ import { Overview } from './pages/Overview';
 import { CoordinatorPage } from './pages/CoordinatorPage';
 import { GrowthPage } from './pages/GrowthPage';
 import { ContentPage } from './pages/ContentPage';
+import { PlannerPage } from './pages/PlannerPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { ConnectionsPage } from './pages/ConnectionsPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -53,6 +54,7 @@ function DashboardShell() {
               <Route path="coordinator" element={<CoordinatorPage />} />
               <Route path="growth" element={<GrowthPage />} />
               <Route path="content" element={<ContentPage />} />
+              <Route path="planner" element={<PlannerPage />} />
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="connections" element={<ConnectionsPage />} />
               <Route path="settings" element={<SettingsPage />} />

@@ -9,6 +9,7 @@ import {
   CoordinatorIcon,
   GrowthIcon,
   ContentIcon,
+  CalendarIcon,
   AnalyticsIcon,
   ConnectionsIcon,
   SettingsIcon,
@@ -53,6 +54,13 @@ export const Sidebar: React.FC = () => {
       icon: <ContentIcon size={16} />,
       isActive: location.pathname === '/dashboard/content',
       onClick: () => navigate('/dashboard/content'),
+    },
+    {
+      label: 'Content Planner',
+      href: '/dashboard/planner',
+      icon: <CalendarIcon size={16} />,
+      isActive: location.pathname === '/dashboard/planner',
+      onClick: () => navigate('/dashboard/planner'),
     },
     {
       label: 'Analytics agent',
