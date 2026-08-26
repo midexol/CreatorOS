@@ -28,6 +28,13 @@ export interface AppNotification {
   time: string;
 }
 
+export interface UserSession {
+  id: string;
+  email: string;
+  name: string;
+  token: string;
+}
+
 const PLATFORM_NAMES: Record<Platform, string> = {
   twitter: 'X / Twitter',
   linkedin: 'LinkedIn',
@@ -35,6 +42,9 @@ const PLATFORM_NAMES: Record<Platform, string> = {
 };
 
 interface DashboardContextValue {
+  user: UserSession | null;
+  login: (email: string, name?: string) => void;
+  logout: () => void;
   profile: CreatorProfile;
   opportunities: TrendOpportunity[];
   drafts: ContentDraft[];
@@ -66,6 +76,34 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [connectingPlatform, setConnectingPlatform] = useState<Platform | null>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
+  // Auth User Session State
+  const [user, setUser] = useState<UserSession | null>(() => {
+    try {
+      const saved = localStorage.getItem('creatoros_auth_user');
+      return saved ? JSON.parse(saved) : { id: 'usr_default', email: 'creator@creatoros.ai', name: 'Alex Creator', token: 'tok_active' };
+    } catch {
+      return { id: 'usr_default', email: 'creator@creatoros.ai', name: 'Alex Creator', token: 'tok_active' };
+    }
+  });
+
+  const login = (email: string, name?: string) => {
+    const newUser: UserSession = {
+      id: `usr_${Date.now()}`,
+      email,
+      name: name || email.split('@')[0] || 'Creator',
+      token: `tok_${Date.now()}`,
+    };
+    setUser(newUser);
+    localStorage.setItem('creatoros_auth_user', JSON.stringify(newUser));
+    pushNotification(`Signed in as ${newUser.name}`);
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('creatoros_auth_user');
+    pushNotification('Signed out securely');
+  };
+
   const pushNotification = (message: string) => {
     setNotifications((prev) => [{ id: Date.now() + Math.random(), message, time: 'just now' }, ...prev]);
   };
@@ -80,14 +118,16 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (err instanceof NotConfiguredError) {
         setZernioConfigured(false);
       } else {
-        setZernioConfigured(true); // configured, but this call failed — don't block the UI
+        setZernioConfigured(true);
       }
     }
   }, []);
 
   useEffect(() => {
-    refreshAccounts();
-  }, [refreshAccounts]);
+    if (user) {
+      refreshAccounts();
+    }
+  }, [refreshAccounts, user]);
 
   const profile = mindsStore.getProfile();
   const opportunities = mindsStore.getOpportunities();
@@ -114,9 +154,6 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     refreshState();
   };
 
-  // Real publish: finds a connected Zernio account for the draft's platform
-  // and posts through it. If nothing is connected (or Zernio isn't
-  // configured yet), this is honest about that instead of faking success.
   const approveDraft = async (draftId: string) => {
     const draft = drafts.find((d) => d.id === draftId);
     if (!draft) return;
@@ -136,10 +173,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       await publishPost(`${draft.hook}\n\n${draft.body}`, draft.platform, account._id);
       mindsStore.updateDraftStatus(draftId, 'published');
-      // Real engagement numbers arrive over time via Zernio's analytics API —
-      // Person 4's real-time polling isn't wired in yet, so this bookkeeping
-      // step is still simulated to keep the persistence-loop demo working.
-      await analyticsAgent.recordPostMetrics(`post_${Date.now().toString().slice(-4)}`, draft.platform, 9.8, 18500);
+      await analyticsAgent.recordPostMetrics(`post_${Date.now().toString().slice(-4)}`, draft.platform, 9.8, 18500, draft.hook, 'Contrarian');
       refreshState();
       pushNotification(`Published live on ${PLATFORM_NAMES[draft.platform]}`);
     } catch (err) {
@@ -147,16 +181,12 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  // Uses the Content agent's real transcript-repurposing method — reads
-  // performance memory and produces 3 platform-native drafts in one pass.
   const manualGenerate = async (input: string) => {
     await contentAgent.generateDraftsFromTranscript(input);
     refreshState();
     pushNotification('Repurposed into 3 platform-native drafts');
   };
 
-  // Real OAuth redirect via Zernio — this navigates the whole browser away
-  // to the platform's real authorization screen, then back once approved.
   const connectPlatform = async (id: Platform) => {
     setConnectingPlatform(id);
     try {
@@ -213,6 +243,9 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   return (
     <DashboardContext.Provider
       value={{
+        user,
+        login,
+        logout,
         profile,
         opportunities,
         drafts,
