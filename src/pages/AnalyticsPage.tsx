@@ -1,7 +1,15 @@
 import React from 'react';
-import { Sparkles, BarChart3 } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 import { Reveal } from '../components/Reveal';
+import { AnalyticsIcon, XIcon, LinkedInIcon, YouTubeIcon } from '../components/Icons';
+import { Platform } from '../types';
+
+const PlatformMetricLogo: React.FC<{ platformId: Platform }> = ({ platformId }) => {
+  if (platformId === 'twitter') return <XIcon size={12} className="text-white inline mr-1" />;
+  if (platformId === 'linkedin') return <LinkedInIcon size={12} className="text-[#0A66C2] inline mr-1" />;
+  return <YouTubeIcon size={12} className="text-[#FF0000] inline mr-1" />;
+};
 
 export const AnalyticsPage: React.FC = () => {
   const { metrics } = useDashboard();
@@ -10,7 +18,10 @@ export const AnalyticsPage: React.FC = () => {
     <div className="space-y-6">
       <Reveal>
         <div className="bg-panel/40 border border-border2 p-6 rounded-2xl backdrop-blur-xl">
-          <h1 className="text-2xl font-display text-amber mb-2">Analytics agent</h1>
+          <div className="flex items-center gap-2.5 mb-2">
+            <AnalyticsIcon size={22} className="text-amber" />
+            <h1 className="text-2xl font-display text-amber">Analytics agent</h1>
+          </div>
           <p className="text-sm text-slate-300 leading-relaxed mb-4 max-w-xl">
             After a post goes live, this checks how it performed and uses that to make your next
             draft's hook even better — so CreatorOS gets sharper the more you use it.
@@ -35,7 +46,7 @@ export const AnalyticsPage: React.FC = () => {
       <Reveal delay={100}>
         <div className="flex items-center justify-between">
           <h2 className="font-display text-base text-slate-50 flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-emerald2" />
+            <AnalyticsIcon size={18} className="text-emerald2" />
             Recent post performance
           </h2>
         </div>
@@ -46,7 +57,8 @@ export const AnalyticsPage: React.FC = () => {
           <Reveal key={metric.postId + i} delay={i * 70}>
             <div className="grid md:grid-cols-[auto_1fr_auto] gap-6 px-1 py-5 border-b border-border2 items-center">
               <div>
-                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-border2">
+                <span className="inline-flex items-center text-[10px] font-mono uppercase px-2.5 py-1 rounded bg-white/5 text-slate-300 border border-border2">
+                  <PlatformMetricLogo platformId={metric.platform} />
                   {metric.platform}
                 </span>
                 <p className="text-[10px] text-slate-500 mt-1 font-mono2">{metric.timestamp}</p>

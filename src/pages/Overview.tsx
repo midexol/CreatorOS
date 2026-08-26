@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Send, RefreshCw, Zap } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 import { Reveal } from '../components/Reveal';
+import { OverviewIcon } from '../components/Icons';
 
 const suggestions = [
   'Grow my YouTube channel',
@@ -41,7 +42,10 @@ export const Overview: React.FC = () => {
   return (
     <div className="space-y-8">
       <Reveal>
-        <h1 className="font-display text-2xl text-amber mb-2">Overview</h1>
+        <div className="flex items-center gap-2.5 mb-2">
+          <OverviewIcon size={24} className="text-amber" />
+          <h1 className="font-display text-2xl text-amber">Overview</h1>
+        </div>
         <p className="text-slate-400 text-sm max-w-xl">
           Tell CreatorOS what you're trying to grow. It finds the opportunity, drafts the content,
           and gets it ready for your approval.
@@ -59,7 +63,7 @@ export const Overview: React.FC = () => {
             <p className="text-slate-500 text-xs font-mono2 mt-1">drafts awaiting approval</p>
           </div>
           <div className="px-6 py-5">
-            <p className="text-2xl font-display">{connectedCount}<span className="text-slate-500">/2</span></p>
+            <p className="text-2xl font-display">{connectedCount}<span className="text-slate-500">/4</span></p>
             <p className="text-slate-500 text-xs font-mono2 mt-1">accounts connected</p>
           </div>
         </div>
@@ -88,7 +92,7 @@ export const Overview: React.FC = () => {
             <button
               type="submit"
               disabled={isExecuting}
-              className="flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-medium px-6 py-3.5 rounded-xl text-xs transition-all disabled:opacity-50"
+              className="flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-medium px-6 py-3.5 rounded-xl text-xs transition-all disabled:opacity-50 shadow-sm"
             >
               {isExecuting ? (
                 <>
