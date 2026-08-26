@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight, CheckCircle, Clock } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, CheckCircle, Clock, Edit2, Trash2, X, Calendar } from 'lucide-react';
 import { Reveal } from '../components/Reveal';
 import { CalendarIcon, XIcon, LinkedInIcon, YouTubeIcon, InstagramIcon, TikTokIcon, ThreadsIcon } from '../components/Icons';
 import { Platform } from '../types';
@@ -17,6 +17,7 @@ interface ScheduledPost {
   date: number; // day of month 1-31
   time: string;
   title: string;
+  body?: string;
   status: 'scheduled' | 'published' | 'draft';
 }
 
@@ -27,11 +28,11 @@ const DEFAULT_PROJECTS: Project[] = [
 ];
 
 const INITIAL_SCHEDULED: ScheduledPost[] = [
-  { id: 'sch_1', projectId: 'proj_1', platform: 'twitter', date: 26, time: '14:00', title: 'Why persistent AI memory changes creator workflows', status: 'scheduled' },
-  { id: 'sch_2', projectId: 'proj_1', platform: 'linkedin', date: 27, time: '10:30', title: '5 metric-backed lessons from 500 creator posts', status: 'scheduled' },
-  { id: 'sch_3', projectId: 'proj_2', platform: 'youtube_shorts', date: 28, time: '18:00', title: 'Repurposing 1-hour audio into 10 shorts in 30 seconds', status: 'draft' },
-  { id: 'sch_4', projectId: 'proj_1', platform: 'instagram', date: 29, time: '12:00', title: 'Behind the scenes: Multi-agent creator setup', status: 'scheduled' },
-  { id: 'sch_5', projectId: 'proj_3', platform: 'threads', date: 30, time: '09:00', title: 'Tokenized community rewards vs traditional Patreon', status: 'published' },
+  { id: 'sch_1', projectId: 'proj_1', platform: 'twitter', date: 26, time: '14:00', title: 'Why persistent AI memory changes creator workflows', body: 'Stateless LLMs forget your context on refresh. Multi-session Minds memory keeps state.', status: 'scheduled' },
+  { id: 'sch_2', projectId: 'proj_1', platform: 'linkedin', date: 27, time: '10:30', title: '5 metric-backed lessons from 500 creator posts', body: 'whitespace formatting + contrarian hook = 42% higher click rate.', status: 'scheduled' },
+  { id: 'sch_3', projectId: 'proj_2', platform: 'youtube_shorts', date: 28, time: '18:00', title: 'Repurposing 1-hour audio into 10 shorts in 30 seconds', body: '[VISUAL: Quick cuts]\n[AUDIO: Tech synth]\n1. Transcribe\n2. Score hooks', status: 'draft' },
+  { id: 'sch_4', projectId: 'proj_1', platform: 'instagram', date: 29, time: '12:00', title: 'Behind the scenes: Multi-agent creator setup', body: 'Building autonomous agents for digital creators in 2026.', status: 'scheduled' },
+  { id: 'sch_5', projectId: 'proj_3', platform: 'threads', date: 30, time: '09:00', title: 'Tokenized community rewards vs traditional Patreon', body: 'Replacing monthly fees with token incentives.', status: 'published' },
 ];
 
 const PlatformMiniLogo: React.FC<{ platform: Platform }> = ({ platform }) => {
@@ -49,9 +50,91 @@ export const PlannerPage: React.FC = () => {
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>(INITIAL_SCHEDULED);
   const [isPlanning, setIsPlanning] = useState(false);
 
+  // Modal / Drawer State for Create & Edit
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null);
+
+  // Form State
+  const [formTitle, setFormTitle] = useState('');
+  const [formBody, setFormBody] = useState('');
+  const [formPlatform, setFormPlatform] = useState<Platform>('twitter');
+  const [formProjectId, setFormProjectId] = useState<string>('proj_1');
+  const [formDate, setFormDate] = useState<number>(26);
+  const [formTime, setFormTime] = useState<string>('14:00');
+  const [formStatus, setFormStatus] = useState<'scheduled' | 'published' | 'draft'>('scheduled');
+
   const filteredPosts = selectedProjectId === 'all'
     ? scheduledPosts
     : scheduledPosts.filter((p) => p.projectId === selectedProjectId);
+
+  const openCreateModal = (dayDate: number = 26) => {
+    setEditingPost(null);
+    setFormTitle('');
+    setFormBody('');
+    setFormPlatform('twitter');
+    setFormProjectId(selectedProjectId === 'all' ? 'proj_1' : selectedProjectId);
+    setFormDate(dayDate);
+    setFormTime('14:00');
+    setFormStatus('scheduled');
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (post: ScheduledPost) => {
+    setEditingPost(post);
+    setFormTitle(post.title);
+    setFormBody(post.body || '');
+    setFormPlatform(post.platform);
+    setFormProjectId(post.projectId);
+    setFormDate(post.date);
+    setFormTime(post.time);
+    setFormStatus(post.status);
+    setIsModalOpen(true);
+  };
+
+  const handleSavePost = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formTitle.trim()) return;
+
+    if (editingPost) {
+      // Edit existing post
+      setScheduledPosts((prev) =>
+        prev.map((p) =>
+          p.id === editingPost.id
+            ? {
+                ...p,
+                title: formTitle,
+                body: formBody,
+                platform: formPlatform,
+                projectId: formProjectId,
+                date: formDate,
+                time: formTime,
+                status: formStatus,
+              }
+            : p
+        )
+      );
+    } else {
+      // Create new post
+      const newPost: ScheduledPost = {
+        id: `sch_${Date.now()}`,
+        projectId: formProjectId,
+        platform: formPlatform,
+        date: formDate,
+        time: formTime,
+        title: formTitle,
+        body: formBody,
+        status: formStatus,
+      };
+      setScheduledPosts((prev) => [...prev, newPost]);
+    }
+
+    setIsModalOpen(false);
+  };
+
+  const handleDeletePost = (id: string) => {
+    setScheduledPosts((prev) => prev.filter((p) => p.id !== id));
+    setIsModalOpen(false);
+  };
 
   const handleAiPlan = () => {
     setIsPlanning(true);
@@ -63,6 +146,7 @@ export const PlannerPage: React.FC = () => {
         date: 31,
         time: '15:00',
         title: 'Minds AI 7-Day Planned Content Batch',
+        body: 'Auto-planned content calendar batch.',
         status: 'scheduled',
       };
       setScheduledPosts((prev) => [...prev, newPost]);
@@ -81,17 +165,26 @@ export const PlannerPage: React.FC = () => {
               Content Planner & Visual Calendar
             </h1>
             <p className="text-slate-400 text-sm max-w-xl">
-              Organize multi-platform posts, separate content into brand projects, and automate your schedule.
+              Organize multi-platform posts, separate content into brand projects, schedule manually, and edit upcoming posts.
             </p>
           </div>
 
-          <button
-            onClick={handleAiPlan}
-            disabled={isPlanning}
-            className="flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-medium px-4 py-2 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50"
-          >
-            {isPlanning ? 'Planning…' : 'Generate 7-Day Plan'}
-          </button>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => openCreateModal(26)}
+              className="flex items-center gap-1.5 border border-amber/40 bg-amber/10 hover:bg-amber/20 text-amber font-medium px-3.5 py-2 rounded-xl text-xs transition-all shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Schedule Post
+            </button>
+            <button
+              onClick={handleAiPlan}
+              disabled={isPlanning}
+              className="flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-medium px-4 py-2 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50"
+            >
+              {isPlanning ? 'Planning…' : 'Generate 7-Day Plan'}
+            </button>
+          </div>
         </div>
       </Reveal>
 
@@ -173,7 +266,11 @@ export const PlannerPage: React.FC = () => {
                   <span className={`text-xs font-mono font-semibold ${isToday ? 'text-amber' : 'text-slate-400'}`}>
                     Aug {dayNum} {isToday && '(Today)'}
                   </span>
-                  <button className="text-slate-500 hover:text-slate-200">
+                  <button
+                    onClick={() => openCreateModal(dayNum)}
+                    className="text-slate-500 hover:text-amber transition-colors"
+                    title="Schedule post on this date"
+                  >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -184,20 +281,26 @@ export const PlannerPage: React.FC = () => {
                     return (
                       <div
                         key={post.id}
-                        className="p-2.5 rounded-lg bg-canvas/60 border border-border2 text-xs space-y-1 hover:border-amber/30 transition-colors"
+                        onClick={() => openEditModal(post)}
+                        className="p-2.5 rounded-lg bg-canvas/60 border border-border2 text-xs space-y-1 hover:border-amber/40 transition-colors cursor-pointer group"
                       >
                         <div className="flex items-center justify-between text-[10px]">
                           <span className="inline-flex items-center gap-1 font-mono text-slate-300">
                             <PlatformMiniLogo platform={post.platform} />
                             {post.time}
                           </span>
-                          {post.status === 'published' ? (
-                            <CheckCircle className="w-3 h-3 text-emerald2" />
-                          ) : (
-                            <Clock className="w-3 h-3 text-amber" />
-                          )}
+                          <div className="flex items-center gap-1">
+                            <Edit2 className="w-3 h-3 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity text-amber" />
+                            {post.status === 'published' ? (
+                              <CheckCircle className="w-3 h-3 text-emerald2" />
+                            ) : (
+                              <Clock className="w-3 h-3 text-amber" />
+                            )}
+                          </div>
                         </div>
-                        <p className="text-[11px] font-medium text-slate-200 line-clamp-2 leading-snug">{post.title}</p>
+                        <p className="text-[11px] font-medium text-slate-200 line-clamp-2 leading-snug group-hover:text-amber transition-colors">
+                          {post.title}
+                        </p>
                         {proj && (
                           <div className="text-[9px] font-mono text-slate-500 truncate">{proj.name}</div>
                         )}
@@ -205,7 +308,12 @@ export const PlannerPage: React.FC = () => {
                     );
                   })}
                   {dayPosts.length === 0 && (
-                    <div className="text-[10px] text-slate-600 font-mono2 text-center py-6">No posts</div>
+                    <button
+                      onClick={() => openCreateModal(dayNum)}
+                      className="w-full text-[10px] text-slate-600 hover:text-slate-400 font-mono2 text-center py-6 transition-colors"
+                    >
+                      + Add post
+                    </button>
                   )}
                 </div>
               </div>
@@ -213,6 +321,159 @@ export const PlannerPage: React.FC = () => {
           })}
         </div>
       </Reveal>
+
+      {/* Manual Schedule & Edit Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-lg bg-[#0F172A] border border-border2 rounded-2xl p-6 shadow-2xl space-y-5 text-slate-100">
+            <div className="flex items-center justify-between border-b border-border2 pb-3">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-amber" />
+                <h2 className="text-base font-display text-slate-50">
+                  {editingPost ? 'Edit Scheduled Post' : 'Schedule New Post'}
+                </h2>
+              </div>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-1 text-slate-400 hover:text-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePost} className="space-y-4">
+              <div>
+                <label className="block text-xs font-mono text-slate-400 mb-1">Post Title / Hook</label>
+                <input
+                  type="text"
+                  required
+                  value={formTitle}
+                  onChange={(e) => setFormTitle(e.target.value)}
+                  placeholder="e.g. 5 metric-backed lessons for creators"
+                  className="w-full bg-canvas border border-border2 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono text-slate-400 mb-1">Content Body</label>
+                <textarea
+                  rows={3}
+                  value={formBody}
+                  onChange={(e) => setFormBody(e.target.value)}
+                  placeholder="Enter full post copy or script instructions..."
+                  className="w-full bg-canvas border border-border2 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-mono2"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-1">Target Platform</label>
+                  <select
+                    value={formPlatform}
+                    onChange={(e) => setFormPlatform(e.target.value as Platform)}
+                    className="w-full bg-canvas border border-border2 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none"
+                  >
+                    <option value="twitter">X / Twitter</option>
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="youtube_shorts">YouTube Shorts</option>
+                    <option value="youtube_longform">YouTube Video</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="threads">Threads</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-1">Project / Brand</label>
+                  <select
+                    value={formProjectId}
+                    onChange={(e) => setFormProjectId(e.target.value)}
+                    className="w-full bg-canvas border border-border2 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none"
+                  >
+                    {projects.map((proj) => (
+                      <option key={proj.id} value={proj.id}>
+                        {proj.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-1">Day of Month</label>
+                  <select
+                    value={formDate}
+                    onChange={(e) => setFormDate(Number(e.target.value))}
+                    className="w-full bg-canvas border border-border2 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none"
+                  >
+                    {[25, 26, 27, 28, 29, 30, 31].map((d) => (
+                      <option key={d} value={d}>
+                        Aug {d}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-1">Schedule Time</label>
+                  <input
+                    type="text"
+                    value={formTime}
+                    onChange={(e) => setFormTime(e.target.value)}
+                    placeholder="14:00"
+                    className="w-full bg-canvas border border-border2 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none font-mono2"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-1">Status</label>
+                  <select
+                    value={formStatus}
+                    onChange={(e) => setFormStatus(e.target.value as any)}
+                    className="w-full bg-canvas border border-border2 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none"
+                  >
+                    <option value="scheduled">Scheduled</option>
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-border2">
+                {editingPost ? (
+                  <button
+                    type="button"
+                    onClick={() => handleDeletePost(editingPost.id)}
+                    className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-medium transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete Post
+                  </button>
+                ) : (
+                  <div />
+                )}
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="text-xs text-slate-400 hover:text-slate-100 px-4 py-2 rounded-xl border border-border2 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-amber hover:bg-amber-soft text-[#08090A] font-medium text-xs px-5 py-2 rounded-xl transition-all shadow-sm"
+                  >
+                    {editingPost ? 'Save Changes' : 'Schedule Post'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
