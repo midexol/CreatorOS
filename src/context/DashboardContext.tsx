@@ -95,6 +95,43 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
+  // Handle Google OAuth hash or token callback on page load
+  useEffect(() => {
+    const handleGoogleHashCallback = async () => {
+      const hash = window.location.hash;
+      if (hash.includes('access_token=')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get('access_token');
+        if (accessToken) {
+          try {
+            const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            });
+            if (userInfoRes.ok) {
+              const googleProfile = await userInfoRes.json();
+              const googleUser: UserSession = {
+                id: `usr_google_${googleProfile.sub || Date.now()}`,
+                email: googleProfile.email,
+                name: googleProfile.name || googleProfile.email.split('@')[0],
+                avatarUrl: googleProfile.picture || 'preset_teal',
+                token: accessToken,
+              };
+              setUser(googleUser);
+              localStorage.setItem('creatoros_auth_user', JSON.stringify(googleUser));
+              mindsStore.setUserId(googleUser.id);
+              pushNotification(`Signed in with Google as ${googleUser.email}`);
+              // Clean URL hash
+              window.history.replaceState(null, '', window.location.pathname);
+            }
+          } catch {
+            // ignore
+          }
+        }
+      }
+    };
+    handleGoogleHashCallback();
+  }, []);
+
   useEffect(() => {
     if (user?.id) {
       mindsStore.setUserId(user.id);
@@ -136,17 +173,38 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const loginWithGoogle = async () => {
+    const metaEnv = (import.meta as any).env || {};
+    const googleClientId = metaEnv.VITE_GOOGLE_CLIENT_ID || (window as any).VITE_GOOGLE_CLIENT_ID;
+
+    // Check if Google Client ID is configured in Vercel environment variables
+    if (googleClientId && typeof googleClientId === 'string' && googleClientId.includes('.apps.googleusercontent.com')) {
+      const redirectUri = `${window.location.origin}/dashboard`;
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(
+        redirectUri
+      )}&response_type=token&scope=email%20profile`;
+      window.location.href = googleAuthUrl;
+      return;
+    }
+
+    // Fallback: Prompt user for Google account email or instant sign in
+    const inputEmail = window.prompt('Enter your Google Account email:', 'creator.google@gmail.com');
+    if (!inputEmail || !inputEmail.trim()) return;
+
+    const emailClean = inputEmail.trim();
+    const namePart = emailClean.split('@')[0];
+    const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1) + ' (Google)';
+
     const googleUser: UserSession = {
-      id: `usr_google_default`,
-      email: 'creator.google@gmail.com',
-      name: 'Google Creator',
+      id: `usr_google_${emailClean.replace(/[^a-zA-Z0-9]/g, '_')}`,
+      email: emailClean,
+      name: formattedName,
       avatarUrl: 'preset_teal',
       token: `tok_google_${Date.now()}`,
     };
     setUser(googleUser);
     localStorage.setItem('creatoros_auth_user', JSON.stringify(googleUser));
     mindsStore.setUserId(googleUser.id);
-    pushNotification('Signed in with Google');
+    pushNotification(`Signed in with Google as ${googleUser.email}`);
   };
 
   const updateUserAvatar = (avatarUrl: string) => {
