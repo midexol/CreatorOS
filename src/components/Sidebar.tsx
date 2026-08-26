@@ -21,9 +21,9 @@ export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
 
   const userProfile = {
-    name: user?.name || 'Alex Creator',
+    name: user?.name || 'Creator',
     email: user?.email || 'creator@creatoros.ai',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+    avatarUrl: user?.avatarUrl || 'preset_amber',
   };
 
   const navItems = [

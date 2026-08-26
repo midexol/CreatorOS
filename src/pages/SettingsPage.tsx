@@ -4,17 +4,19 @@ import { useDashboard } from '../context/DashboardContext';
 import { Reveal } from '../components/Reveal';
 import { SettingsIcon, MindsIcon } from '../components/Icons';
 import { fetchMindsMemory, ConversationMessage } from '../lib/minds';
+import { UserAvatar, AVATAR_PRESETS } from '../components/UserAvatar';
 
 export const SettingsPage: React.FC = () => {
-  const { user } = useDashboard();
+  const { user, updateUserAvatar } = useDashboard();
   const [history, setHistory] = useState<ConversationMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'account' | 'features' | 'minds'>('account');
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   // Account State
-  const [userName, setUserName] = useState(user?.name || 'Alex Creator');
+  const [userName, setUserName] = useState(user?.name || 'Creator');
   const [userEmail, setUserEmail] = useState(user?.email || 'creator@creatoros.ai');
+  const [userAvatar, setUserAvatar] = useState(user?.avatarUrl || 'preset_amber');
   const [userRole] = useState('Pro Creator Plan');
 
   // Customizable Feature Toggles & Preferences
@@ -36,6 +38,7 @@ export const SettingsPage: React.FC = () => {
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
+    updateUserAvatar(userAvatar);
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
   };
@@ -99,7 +102,7 @@ export const SettingsPage: React.FC = () => {
             }`}
           >
             <User className="w-4 h-4" />
-            Account & Security Details
+            Account & Avatar Profile
           </button>
 
           <button
@@ -128,15 +131,69 @@ export const SettingsPage: React.FC = () => {
         </div>
       </Reveal>
 
-      {/* Account Details Tab */}
+      {/* Account Details & Avatar Picker Tab */}
       {activeTab === 'account' && (
         <Reveal delay={100}>
           <form onSubmit={handleSaveSettings} className="space-y-6">
+            {/* Avatar Selection Card */}
             <div className="bg-panel/40 border border-border2 p-6 rounded-2xl backdrop-blur-xl space-y-5">
               <div className="flex items-center gap-3 pb-3 border-b border-border2">
                 <User className="w-5 h-5 text-amber" />
                 <div>
-                  <h2 className="text-base font-display text-slate-100">User Account Profile</h2>
+                  <h2 className="text-base font-display text-slate-100">User Profile Avatar</h2>
+                  <p className="text-xs text-slate-400 font-mono2">Choose a vector avatar preset or provide a custom image URL</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="flex flex-col items-center gap-2">
+                  <UserAvatar name={userName} avatarUrl={userAvatar} size={72} />
+                  <span className="text-[10px] font-mono text-slate-400">Current Avatar</span>
+                </div>
+
+                <div className="flex-1 space-y-3 w-full">
+                  <label className="block text-xs font-mono text-slate-400">Vector Avatar Presets</label>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {AVATAR_PRESETS.map((preset) => {
+                      const isSel = userAvatar === preset.id;
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => setUserAvatar(preset.id)}
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border text-xs font-medium transition-all ${
+                            isSel
+                              ? 'border-amber bg-amber/15 text-amber shadow-sm'
+                              : 'border-border2 text-slate-300 hover:border-amber/40 hover:bg-white/5'
+                          }`}
+                        >
+                          <UserAvatar name={preset.name} avatarUrl={preset.id} size={26} />
+                          <span>{preset.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="pt-2">
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Custom Image URL</label>
+                    <input
+                      type="text"
+                      value={userAvatar.startsWith('http') ? userAvatar : ''}
+                      onChange={(e) => setUserAvatar(e.target.value)}
+                      placeholder="https://images.unsplash.com/photo-..."
+                      className="w-full bg-canvas border border-border2 rounded-xl px-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber/50 font-mono2"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Profile Info Card */}
+            <div className="bg-panel/40 border border-border2 p-6 rounded-2xl backdrop-blur-xl space-y-5">
+              <div className="flex items-center gap-3 pb-3 border-b border-border2">
+                <User className="w-5 h-5 text-amber" />
+                <div>
+                  <h2 className="text-base font-display text-slate-100">User Credentials & Account Info</h2>
                   <p className="text-xs text-slate-400 font-mono2">Personal credentials and subscription details</p>
                 </div>
               </div>
@@ -170,7 +227,7 @@ export const SettingsPage: React.FC = () => {
                 </div>
                 <div className="bg-canvas/50 p-3.5 rounded-xl border border-border2">
                   <div className="text-[10px] text-slate-500 font-mono uppercase">Account ID</div>
-                  <div className="text-xs font-mono text-slate-300 mt-1">usr_8829a4c311</div>
+                  <div className="text-xs font-mono text-slate-300 mt-1">{user?.id || 'usr_8829a4c311'}</div>
                 </div>
                 <div className="bg-canvas/50 p-3.5 rounded-xl border border-border2">
                   <div className="text-[10px] text-slate-500 font-mono uppercase">Session Status</div>
@@ -206,7 +263,7 @@ export const SettingsPage: React.FC = () => {
                 className="flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-medium px-5 py-2.5 rounded-xl text-xs transition-all shadow-sm"
               >
                 <Save className="w-4 h-4" />
-                Save Account Changes
+                Save Account & Avatar Changes
               </button>
             </div>
           </form>

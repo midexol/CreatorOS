@@ -52,6 +52,7 @@ interface DashboardContextValue {
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   signupWithEmail: (name: string, email: string, pass: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
+  updateUserAvatar: (avatarUrl: string) => void;
   logout: () => void;
   profile: CreatorProfile;
   opportunities: TrendOpportunity[];
@@ -108,6 +109,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       id: `usr_${Date.now()}`,
       email,
       name,
+      avatarUrl: 'preset_amber',
       token: `tok_${Date.now()}`,
     };
     setUser(newUser);
@@ -124,6 +126,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       id: `usr_${email.replace(/[^a-zA-Z0-9]/g, '_')}`,
       email,
       name: nameFormatted,
+      avatarUrl: 'preset_amber',
       token: `tok_${Date.now()}`,
     };
     setUser(existingUser);
@@ -137,12 +140,21 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       id: `usr_google_default`,
       email: 'creator.google@gmail.com',
       name: 'Google Creator',
+      avatarUrl: 'preset_teal',
       token: `tok_google_${Date.now()}`,
     };
     setUser(googleUser);
     localStorage.setItem('creatoros_auth_user', JSON.stringify(googleUser));
     mindsStore.setUserId(googleUser.id);
     pushNotification('Signed in with Google');
+  };
+
+  const updateUserAvatar = (avatarUrl: string) => {
+    if (!user) return;
+    const updated = { ...user, avatarUrl };
+    setUser(updated);
+    localStorage.setItem('creatoros_auth_user', JSON.stringify(updated));
+    pushNotification('Profile avatar updated');
   };
 
   const logout = () => {
@@ -315,6 +327,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         loginWithEmail,
         signupWithEmail,
         loginWithGoogle,
+        updateUserAvatar,
         logout,
         profile,
         opportunities,

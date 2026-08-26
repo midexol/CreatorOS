@@ -2,6 +2,7 @@ import * as React from 'react';
 import { motion, Variants } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { UserAvatar } from '../UserAvatar';
 
 export interface NavItem {
   icon: React.ReactNode;
@@ -66,13 +67,9 @@ export const UserProfileSidebar = React.forwardRef<HTMLDivElement, UserProfileSi
         variants={sidebarVariants}
         aria-label="User Profile Menu"
       >
-        {/* User Info Header */}
+        {/* User Info Header with Vector Avatar */}
         <motion.div variants={itemVariants} className="flex items-center space-x-3.5 p-2">
-          <img
-            src={user.avatarUrl}
-            alt={`${user.name}'s avatar`}
-            className="h-11 w-11 rounded-full object-cover border border-amber/30 shrink-0"
-          />
+          <UserAvatar name={user.name} avatarUrl={user.avatarUrl} size={42} />
           <div className="flex flex-col truncate">
             <span className="font-semibold text-sm text-slate-100">{user.name}</span>
             <span className="text-xs text-slate-400 truncate">{user.email}</span>
