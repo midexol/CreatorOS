@@ -1,5 +1,6 @@
 import { ContentDraft, Platform, TrendOpportunity, PerformanceMetric } from '../types';
 import { mindsStore } from '../memory/mindsStore';
+import { repurposeWithMinds, MindsNotConfiguredError } from '../lib/minds';
 
 type HookStyle = 'contrarian' | 'question' | 'stat' | 'story' | 'standard';
 
@@ -8,11 +9,6 @@ const ALL_PLATFORMS: Platform[] = ['twitter', 'linkedin', 'youtube_shorts'];
 export class ContentAgent {
   public name = "Content Repurposing & Generation Agent";
 
-  /**
-   * Dynamic Memory Reading: inspects analytics.performance_history for the given
-   * platform, ranks hook styles by engagementRate, and returns the winning style
-   * (falling back to 'standard' when there is no history yet).
-   */
   private selectWinningHookStyle(platform: Platform): { style: HookStyle; insight: string } {
     const history = mindsStore.getPerformanceHistory().filter(p => p.platform === platform);
 
@@ -37,7 +33,7 @@ export class ContentAgent {
     switch (style) {
       case 'contrarian':
         return platform === 'twitter'
-          ? `🔥 Everyone is wrong about ${topic}. Here's what the data actually shows.`
+          ? `Everyone is wrong about ${topic}. Here's what the data actually shows.`
           : platform === 'linkedin'
           ? `Unpopular opinion: most creators are approaching ${topic} completely backwards.`
           : `Stop. Everything you know about ${topic} is wrong.`;
@@ -49,7 +45,7 @@ export class ContentAgent {
           : `Ever wonder why ${topic} keeps blowing up?`;
       case 'stat':
         return platform === 'twitter'
-          ? `${topic} just moved the needle by double digits. Here's the breakdown 🧵`
+          ? `${topic} just moved the needle by double digits. Here's the breakdown`
           : platform === 'linkedin'
           ? `The numbers on ${topic} are in — and they're bigger than expected.`
           : `The stats on ${topic} will surprise you.`;
@@ -61,7 +57,7 @@ export class ContentAgent {
           : `[VISUAL: Quick hook shot] Here's what happened with ${topic}.`;
       default:
         return platform === 'twitter'
-          ? `🔥 ${topic} is changing the creator economy right now.`
+          ? `${topic} is changing the creator economy right now.`
           : platform === 'linkedin'
           ? `Most creators are sleeping on ${topic}. Here's what the data shows:`
           : `Stop scrolling! Here is the 30-second update on ${topic}.`;
@@ -70,7 +66,7 @@ export class ContentAgent {
 
   private craftBody(platform: Platform, topic: string, angle: string, source: string, score: number): string {
     if (platform === 'twitter') {
-      return `Here is why this matters and how to stay ahead 🧵👇\n\n1. Angle: ${angle}\n2. Source: Verified via ${source}.\n3. Persistence Loop: Minds agents write performance metrics back into state autonomously.`;
+      return `Here is why this matters and how to stay ahead 👇\n\n1. Angle: ${angle}\n2. Source: Verified via ${source}.\n3. Persistence Loop: Minds agents write performance metrics back into state autonomously.`;
     }
     if (platform === 'linkedin') {
       return `Over the past week, trend signals scored this topic at ${score}/100 for audience growth potential.\n\nKey Takeaway:\n${angle}\n\nBy leveraging persistent multi-agent memory, creators no longer have to spend 4 hours daily repurposing manually.`;
@@ -88,7 +84,7 @@ export class ContentAgent {
     return "Follow for daily AI creator tools!";
   }
 
-  private buildDraft(opportunity: TrendOpportunity, platform: Platform): ContentDraft {
+  private buildFallbackDraft(opportunity: TrendOpportunity, platform: Platform): ContentDraft {
     const { style, insight } = this.selectWinningHookStyle(platform);
 
     const hook = this.craftHook(style, platform, opportunity.topic);
@@ -122,7 +118,7 @@ export class ContentAgent {
   }
 
   public async generateDraftFromOpportunity(opportunity: TrendOpportunity, platform: Platform): Promise<ContentDraft> {
-    return this.buildDraft(opportunity, platform);
+    return this.buildFallbackDraft(opportunity, platform);
   }
 
   private extractTopicAndAngle(transcript: string): { topic: string; angle: string } {
@@ -134,12 +130,90 @@ export class ContentAgent {
   }
 
   /**
-   * Multi-Platform Native Output: takes one raw transcript and repurposes it into
-   * 3 distinct, platform-native drafts (X Thread, LinkedIn, YouTube Shorts script)
-   * in a single pass, each independently adapted via performance memory.
+   * Multi-Platform Native Output with Real Minds Integration:
+   * First attempts to call real Minds Agent API via /api/minds/repurpose.
+   * If Minds API is configured, uses real Minds LLM response!
+   * Fallbacks gracefully if key is not configured.
    */
   public async generateDraftsFromTranscript(transcript: string): Promise<ContentDraft[]> {
     const { topic, angle } = this.extractTopicAndAngle(transcript);
+
+    try {
+      const mindsResult = await repurposeWithMinds(transcript, 'Tech & AI Creator', 'contrarian');
+
+      if (mindsResult && mindsResult.drafts) {
+        const timestamp = Date.now();
+        const drafts: ContentDraft[] = [];
+
+        if (mindsResult.drafts.twitter) {
+          const tw = mindsResult.drafts.twitter;
+          const draft: ContentDraft = {
+            id: `draft_${timestamp}_twitter`,
+            opportunityId: `opp_${timestamp}`,
+            platform: 'twitter',
+            hook: tw.hook,
+            body: Array.isArray(tw.thread) ? tw.thread.join('\n\n') : String(tw.thread || ''),
+            cta: tw.cta,
+            status: 'pending_approval',
+            createdAt: 'Just now',
+            predictedPerformanceScore: 95,
+          };
+          mindsStore.addDraft(draft);
+          drafts.push(draft);
+        }
+
+        if (mindsResult.drafts.linkedin) {
+          const li = mindsResult.drafts.linkedin;
+          const draft: ContentDraft = {
+            id: `draft_${timestamp}_linkedin`,
+            opportunityId: `opp_${timestamp}`,
+            platform: 'linkedin',
+            hook: li.hook,
+            body: li.body,
+            cta: li.cta,
+            status: 'pending_approval',
+            createdAt: 'Just now',
+            predictedPerformanceScore: 92,
+          };
+          mindsStore.addDraft(draft);
+          drafts.push(draft);
+        }
+
+        if (mindsResult.drafts.youtube_shorts) {
+          const yt = mindsResult.drafts.youtube_shorts;
+          const draft: ContentDraft = {
+            id: `draft_${timestamp}_youtube_shorts`,
+            opportunityId: `opp_${timestamp}`,
+            platform: 'youtube_shorts',
+            hook: yt.hook,
+            body: yt.script,
+            cta: yt.cta,
+            status: 'pending_approval',
+            createdAt: 'Just now',
+            predictedPerformanceScore: 94,
+          };
+          mindsStore.addDraft(draft);
+          drafts.push(draft);
+        }
+
+        mindsStore.addTraceStep({
+          id: `step_${timestamp}_minds`,
+          timestamp: new Date().toLocaleTimeString(),
+          agentName: 'Content Agent',
+          action: 'Minds Agent Execution',
+          details: `Processed transcript via real Minds API. Memory adapted: ${mindsResult.adapted_from_memory ? 'Yes' : 'Initial'}. Insight: ${mindsResult.memory_insight || 'Active'}.`,
+          status: 'completed',
+        });
+
+        if (drafts.length > 0) return drafts;
+      }
+    } catch (err) {
+      if (err instanceof MindsNotConfiguredError) {
+        console.log('[Minds] Key not configured — falling back to local memory engine');
+      } else {
+        console.warn('[Minds] API call error:', err);
+      }
+    }
 
     const opportunity: TrendOpportunity = {
       id: `opp_transcript_${Date.now()}`,
@@ -151,7 +225,7 @@ export class ContentAgent {
       timestamp: "Just now"
     };
 
-    return ALL_PLATFORMS.map(platform => this.buildDraft(opportunity, platform));
+    return ALL_PLATFORMS.map(platform => this.buildFallbackDraft(opportunity, platform));
   }
 }
 

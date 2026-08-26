@@ -32,7 +32,7 @@ export const Sidebar: React.FC = () => {
               key={link.to}
               to={link.to}
               end={link.end}
-              className={({ isActive }) =>
+              className={({ isActive }: { isActive: boolean }) =>
                 `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors border-l-2 ${
                   isActive
                     ? 'text-slate-50 border-amber bg-white/[0.04]'
