@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, Send, Sparkles, AlertCircle } from 'lucide-react';
+import { CheckCircle, Send, AlertCircle } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 import { Reveal } from '../components/Reveal';
 import { ContentIcon, XIcon, LinkedInIcon, YouTubeIcon } from '../components/Icons';
@@ -42,7 +42,7 @@ export const ContentPage: React.FC = () => {
           </div>
           <p className="text-xs text-slate-400 mb-4 max-w-xl">
             Paste a video script, transcript, or article link. The Content agent reads performance
-            memory to adapt hook styles before formatting native posts for X, LinkedIn, YouTube Shorts, and YouTube Longform.
+            memory to adapt hook styles before formatting native posts.
           </p>
           <form onSubmit={handleSubmit} className="flex gap-3">
             <input
@@ -56,7 +56,6 @@ export const ContentPage: React.FC = () => {
               type="submit"
               className="flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-medium px-5 py-2.5 rounded-xl text-xs transition-all shadow-sm"
             >
-              <Sparkles className="w-4 h-4" />
               Repurpose
             </button>
           </form>

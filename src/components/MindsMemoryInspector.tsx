@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Brain, Cpu, Database, CheckCircle, RefreshCw, X } from 'lucide-react';
+import { Brain, Cpu, Database, CheckCircle, RefreshCw, X } from 'lucide-react';
 import { fetchMindsMemory, ConversationMessage } from '../lib/minds';
 
 interface MindsMemoryInspectorProps {
@@ -51,12 +51,10 @@ export const MindsMemoryInspector: React.FC<MindsMemoryInspectorProps> = ({ isOp
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">
       <div className="relative w-full max-w-2xl bg-[#0F172A] border border-minds-accent/30 rounded-2xl p-6 shadow-2xl space-y-5 text-slate-100 overflow-hidden">
-        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-teal via-amber to-minds-purple" />
-
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-minds-accent/10 border border-minds-accent/30 text-teal">
-              <Brain className="w-6 h-6 animate-pulse" />
+              <Brain className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -86,7 +84,6 @@ export const MindsMemoryInspector: React.FC<MindsMemoryInspectorProps> = ({ isOp
                 : 'text-slate-400 hover:text-slate-100'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
             Learned Memory Rules ({learnedRules.length})
           </button>
           <button

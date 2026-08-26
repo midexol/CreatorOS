@@ -1,5 +1,4 @@
 import React from 'react';
-import { Sparkles } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 import { Reveal } from '../components/Reveal';
 import { AnalyticsIcon, XIcon, LinkedInIcon, YouTubeIcon } from '../components/Icons';
@@ -67,7 +66,6 @@ export const AnalyticsPage: React.FC = () => {
               <div>
                 <div className="text-xs text-slate-400">{metric.hookStyle}</div>
                 <p className="text-xs text-emerald2 leading-relaxed mt-1">
-                  <Sparkles className="w-3 h-3 inline mr-1" />
                   {metric.insight}
                 </p>
               </div>

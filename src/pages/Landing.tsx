@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, TrendingUp, PenLine, BarChart3, Network, Sparkles, Users, Handshake } from 'lucide-react';
+import { ArrowRight, TrendingUp, PenLine, BarChart3, Network, Users, Handshake } from 'lucide-react';
 import { Nav } from '../components/Nav';
 import { OrbitMark } from '../components/OrbitMark';
 import { HeroBackground } from '../components/HeroBackground';
@@ -31,7 +31,6 @@ const roadmapAgents = [
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-xs font-mono text-amber border border-amber/25 bg-amber/[0.06] rounded-full px-3.5 py-1.5">
-      <Sparkles className="w-3 h-3" />
       {children}
     </span>
   );

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, PlusCircle } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { Platform } from '../types';
 import { useDashboard } from '../context/DashboardContext';
 import { Reveal } from '../components/Reveal';
@@ -26,7 +26,6 @@ export const GrowthPage: React.FC = () => {
             onClick={() => triggerTrendScan()}
             className="flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-medium px-4 py-2.5 rounded-xl text-xs transition-all shadow-sm"
           >
-            <Sparkles className="w-4 h-4" />
             Poll fresh trends
           </button>
         </div>
