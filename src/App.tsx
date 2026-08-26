@@ -23,7 +23,7 @@ function DashboardShell() {
       <Sidebar />
 
       <main className="flex-1 min-w-0">
-        <div className="relative h-16 border-b border-border2 sticky top-0 bg-panel/65 backdrop-blur-md z-10 flex items-center justify-between px-8">
+        <div className="relative h-16 border-b border-border2 sticky top-0 bg-panel/65 backdrop-blur-md z-10 flex items-center justify-between px-6 md:px-8">
           <div className="flex items-center gap-3">
             <span className="text-xs font-mono2 text-slate-400">Account:</span>
             <span className="text-xs font-semibold text-amber bg-amber/10 px-2.5 py-1 rounded-full border border-amber/20">
@@ -43,7 +43,7 @@ function DashboardShell() {
           </div>
         </div>
 
-        <div className="relative max-w-5xl mx-auto px-8 py-10 bg-panel/88 backdrop-blur-lg min-h-[calc(100vh-4rem)] overflow-hidden">
+        <div className="relative w-full max-w-[1600px] mx-auto px-6 md:px-8 py-8 bg-panel/88 backdrop-blur-lg min-h-[calc(100vh-4rem)] overflow-hidden">
           <div
             className="absolute inset-x-0 top-0 h-24 pointer-events-none"
             style={{ background: 'linear-gradient(to bottom, rgba(36,52,58,0) 0%, rgba(36,52,58,0.6) 100%)' }}
