@@ -89,7 +89,7 @@ export const Landing: React.FC = () => {
                 onClick={handleHeroAction}
                 className="inline-flex items-center gap-2 bg-amber text-[#08090A] font-medium px-5 py-3 rounded-xl hover:bg-amber-soft transition-all shadow-sm"
               >
-                {user ? 'Open Dashboard' : 'Get Started with Email or Google'}
+                {user ? 'Open Dashboard' : 'Get Started'}
                 <ArrowRight className="w-4 h-4" />
               </button>
               <a href="#how-it-works" className="inline-flex items-center gap-2 text-slate-100/90 hover:text-slate-100 transition-colors px-2 py-3 text-sm">

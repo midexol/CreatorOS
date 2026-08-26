@@ -1,7 +1,5 @@
 import { CreatorProfile, TrendOpportunity, ContentDraft, PerformanceMetric, DelegationStep } from '../types';
 
-// Sample data for demo recording only — not loaded by default. A fresh
-// account starts empty, matching what a real new creator would see.
 export const DEMO_SEED = {
   opportunities: [
     {
@@ -133,45 +131,64 @@ export const DEMO_SEED = {
 };
 
 export class MindsMemoryStore {
-  private static STORAGE_KEY = 'creator_os_minds_memory_v1';
+  private currentUserId: string = 'default';
 
   private profile: CreatorProfile = {
-    name: "New Creator",
-    niche: "",
+    name: "Creator",
+    niche: "Tech & AI",
     brandVoice: "Informative, high-signal, punchy",
-    targetAudience: "",
-    cognitionCredits: 1450
+    targetAudience: "Tech Enthusiasts & AI Builders",
+    cognitionCredits: 1000
   };
 
-  // A fresh account starts empty — no opportunities, drafts, metrics, or
-  // trace history until a real cycle runs (or demo data is explicitly loaded).
   private opportunities: TrendOpportunity[] = [];
   private drafts: ContentDraft[] = [];
   private performanceHistory: PerformanceMetric[] = [];
   private delegationTrace: DelegationStep[] = [];
 
   constructor() {
-    this.loadFromStorage();
+    this.loadFromStorage('default');
   }
 
-  private loadFromStorage() {
-    const saved = localStorage.getItem(MindsMemoryStore.STORAGE_KEY);
+  public setUserId(userId: string) {
+    if (this.currentUserId !== userId) {
+      this.currentUserId = userId;
+      this.loadFromStorage(userId);
+    }
+  }
+
+  private loadFromStorage(userId: string) {
+    const key = `creator_os_minds_memory_${userId}`;
+    const saved = localStorage.getItem(key);
+
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         this.profile = parsed.profile || this.profile;
-        this.opportunities = parsed.opportunities || this.opportunities;
-        this.drafts = parsed.drafts || this.drafts;
-        this.performanceHistory = parsed.performanceHistory || this.performanceHistory;
-        this.delegationTrace = parsed.delegationTrace || this.delegationTrace;
+        this.opportunities = parsed.opportunities || [];
+        this.drafts = parsed.drafts || [];
+        this.performanceHistory = parsed.performanceHistory || [];
+        this.delegationTrace = parsed.delegationTrace || [];
       } catch (e) {
         console.error("Failed to parse saved Minds memory", e);
+        this.resetStateToEmpty();
       }
+    } else {
+      // Clean slate for new account
+      this.resetStateToEmpty();
     }
   }
 
+  private resetStateToEmpty() {
+    this.opportunities = [];
+    this.drafts = [];
+    this.performanceHistory = [];
+    this.delegationTrace = [];
+  }
+
   public saveToStorage() {
-    localStorage.setItem(MindsMemoryStore.STORAGE_KEY, JSON.stringify({
+    const key = `creator_os_minds_memory_${this.currentUserId}`;
+    localStorage.setItem(key, JSON.stringify({
       profile: this.profile,
       opportunities: this.opportunities,
       drafts: this.drafts,
@@ -216,9 +233,6 @@ export class MindsMemoryStore {
     this.saveToStorage();
   }
 
-  // Explicit demo helper — not called automatically. Lets the team load
-  // sample history for a recording session without it being any real
-  // creator's default experience.
   public loadDemoData() {
     this.opportunities = [...DEMO_SEED.opportunities];
     this.drafts = [...DEMO_SEED.drafts];
@@ -228,10 +242,7 @@ export class MindsMemoryStore {
   }
 
   public resetToFresh() {
-    this.opportunities = [];
-    this.drafts = [];
-    this.performanceHistory = [];
-    this.delegationTrace = [];
+    this.resetStateToEmpty();
     this.saveToStorage();
   }
 }

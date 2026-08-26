@@ -94,6 +94,15 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
+  useEffect(() => {
+    if (user?.id) {
+      mindsStore.setUserId(user.id);
+    } else {
+      mindsStore.setUserId('guest');
+    }
+    refreshState();
+  }, [user]);
+
   const signupWithEmail = async (name: string, email: string, _pass: string) => {
     const newUser: UserSession = {
       id: `usr_${Date.now()}`,
@@ -103,6 +112,8 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
     setUser(newUser);
     localStorage.setItem('creatoros_auth_user', JSON.stringify(newUser));
+    mindsStore.setUserId(newUser.id);
+    mindsStore.resetToFresh();
     pushNotification(`Account created! Welcome, ${newUser.name}`);
   };
 
@@ -110,31 +121,34 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const nameFromEmail = email.split('@')[0];
     const nameFormatted = nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
     const existingUser: UserSession = {
-      id: `usr_${Date.now()}`,
+      id: `usr_${email.replace(/[^a-zA-Z0-9]/g, '_')}`,
       email,
       name: nameFormatted,
       token: `tok_${Date.now()}`,
     };
     setUser(existingUser);
     localStorage.setItem('creatoros_auth_user', JSON.stringify(existingUser));
+    mindsStore.setUserId(existingUser.id);
     pushNotification(`Welcome back, ${existingUser.name}`);
   };
 
   const loginWithGoogle = async () => {
     const googleUser: UserSession = {
-      id: `usr_google_${Date.now()}`,
+      id: `usr_google_default`,
       email: 'creator.google@gmail.com',
       name: 'Google Creator',
       token: `tok_google_${Date.now()}`,
     };
     setUser(googleUser);
     localStorage.setItem('creatoros_auth_user', JSON.stringify(googleUser));
+    mindsStore.setUserId(googleUser.id);
     pushNotification('Signed in with Google');
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('creatoros_auth_user');
+    mindsStore.setUserId('guest');
     pushNotification('Signed out securely');
   };
 
@@ -285,12 +299,13 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const loadDemoData = () => {
     mindsStore.loadDemoData();
     refreshState();
+    pushNotification('Loaded sample demo data');
   };
 
   const resetToFresh = () => {
     mindsStore.resetToFresh();
     refreshState();
-    pushNotification('Reset to a fresh account');
+    pushNotification('Reset to fresh account');
   };
 
   return (

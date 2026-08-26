@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Send, RefreshCw, Zap } from 'lucide-react';
+import { Send, RefreshCw, Zap, Link as LinkIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useDashboard } from '../context/DashboardContext';
 import { Reveal } from '../components/Reveal';
-import { OverviewIcon } from '../components/Icons';
+import { OverviewIcon, ConnectionsIcon } from '../components/Icons';
 
 const suggestions = [
   'Grow my YouTube channel',
@@ -52,6 +53,31 @@ export const Overview: React.FC = () => {
         </p>
       </Reveal>
 
+      {/* Onboarding Account Connection Alert for fresh accounts */}
+      {connectedCount === 0 && (
+        <Reveal delay={40}>
+          <div className="bg-amber/10 border border-amber/30 p-4 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-amber/20 text-amber shrink-0">
+                <ConnectionsIcon size={20} />
+              </div>
+              <div>
+                <span className="font-semibold text-slate-100 block">Step 1: Connect your Social Accounts</span>
+                <span className="text-slate-400 font-mono2">Connect LinkedIn, YouTube, Instagram, TikTok, Threads, or X to unlock automatic publishing and memory adaptation.</span>
+              </div>
+            </div>
+
+            <Link
+              to="/dashboard/connections"
+              className="flex items-center gap-1.5 bg-amber hover:bg-amber-soft text-[#08090A] font-semibold px-4 py-2 rounded-xl shrink-0 transition-all shadow-sm"
+            >
+              <LinkIcon className="w-3.5 h-3.5" />
+              Connect Accounts Now
+            </Link>
+          </div>
+        </Reveal>
+      )}
+
       <Reveal delay={80}>
         <div className="grid grid-cols-3 border-y border-border2">
           <div className="px-1 py-5 border-r border-border2">
@@ -63,7 +89,7 @@ export const Overview: React.FC = () => {
             <p className="text-slate-500 text-xs font-mono2 mt-1">drafts awaiting approval</p>
           </div>
           <div className="px-6 py-5">
-            <p className="text-2xl font-display">{connectedCount}<span className="text-slate-500">/4</span></p>
+            <p className="text-2xl font-display">{connectedCount}<span className="text-slate-500">/7</span></p>
             <p className="text-slate-500 text-xs font-mono2 mt-1">accounts connected</p>
           </div>
         </div>
@@ -130,7 +156,7 @@ export const Overview: React.FC = () => {
             <button onClick={loadDemoData} className="text-amber hover:underline">
               Load sample data
             </button>{' '}
-            if you just want to look around.
+            if you want to preview sample metrics.
           </p>
         </Reveal>
       ) : (
@@ -140,7 +166,7 @@ export const Overview: React.FC = () => {
             <button onClick={resetToFresh} className="text-amber hover:underline">
               Reset to a fresh account
             </button>
-            . This clears local data — it doesn't affect anything published live.
+            . This clears local state — it doesn't affect live social posts.
           </p>
         </Reveal>
       )}

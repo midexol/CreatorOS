@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { CheckCircle, Send, AlertCircle } from 'lucide-react';
+import { CheckCircle, Send, AlertCircle, Link as LinkIcon, RefreshCcw } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useDashboard } from '../context/DashboardContext';
 import { Reveal } from '../components/Reveal';
-import { ContentIcon, XIcon, LinkedInIcon, YouTubeIcon } from '../components/Icons';
+import { ContentIcon, XIcon, LinkedInIcon, YouTubeIcon, ConnectionsIcon } from '../components/Icons';
 import { Platform } from '../types';
 
 const platformLabel: Record<string, string> = {
@@ -19,7 +20,7 @@ const PlatformBadgeLogo: React.FC<{ platformId: Platform }> = ({ platformId }) =
 };
 
 export const ContentPage: React.FC = () => {
-  const { drafts, approveDraft, manualGenerate } = useDashboard();
+  const { drafts, approveDraft, manualGenerate, loadDemoData, connectedCount } = useDashboard();
   const [customInput, setCustomInput] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,69 +70,103 @@ export const ContentPage: React.FC = () => {
         </div>
       </Reveal>
 
-      <div className="border-t border-border2">
-        {drafts.map((draft, i) => (
-          <Reveal key={draft.id} delay={i * 70}>
-            <div className="grid md:grid-cols-[1fr_auto] gap-6 px-1 py-6 border-b border-border2 items-start">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center text-[10px] font-mono uppercase px-2.5 py-1 rounded-md bg-teal/10 text-teal border border-teal/25">
-                    <PlatformBadgeLogo platformId={draft.platform} />
-                    {platformLabel[draft.platform]}
-                  </span>
-                  <span
-                    className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
-                      draft.status === 'published'
-                        ? 'bg-emerald2/10 text-emerald2 border-emerald2/25'
-                        : 'bg-amber/10 text-amber border-amber/25'
-                    }`}
-                  >
-                    {draft.status === 'published' ? 'Published' : 'Pending approval'}
-                  </span>
-                </div>
-
-                <div className="bg-canvas/50 p-3.5 rounded-xl border border-border2">
-                  <div className="text-[10px] uppercase font-mono text-slate-500 mb-1">Memory-optimized hook</div>
-                  <p className="text-xs font-medium text-amber">{draft.hook}</p>
-                </div>
-
-                <div className="bg-canvas/30 p-3.5 rounded-xl border border-border2">
-                  <div className="text-[10px] uppercase font-mono text-slate-500 mb-1">Body</div>
-                  <p className="text-xs text-slate-300 whitespace-pre-wrap font-mono2 leading-relaxed">{draft.body}</p>
-                </div>
-
-                {draft.cta && (
-                  <div className="text-[11px] text-slate-300 bg-white/[0.03] p-2.5 rounded-lg border border-border2">
-                    <strong className="text-slate-100">CTA:</strong> {draft.cta}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col items-end justify-between gap-3 shrink-0">
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 whitespace-nowrap">
-                  <AlertCircle className="w-3.5 h-3.5 text-teal" />
-                  <span>Virality: <strong className="text-slate-100">{draft.predictedPerformanceScore}%</strong></span>
-                </div>
-
-                {draft.status === 'pending_approval' ? (
-                  <button
-                    onClick={() => approveDraft(draft.id)}
-                    className="flex items-center gap-1.5 bg-amber hover:bg-amber-soft text-[#08090A] text-xs font-medium py-2 px-4 rounded-xl transition-all whitespace-nowrap shadow-sm"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    Approve & publish
-                  </button>
-                ) : (
-                  <span className="flex items-center gap-1 text-xs text-emerald2 font-medium whitespace-nowrap">
-                    <Send className="w-3.5 h-3.5" />
-                    Live on platform
-                  </span>
-                )}
-              </div>
+      {drafts.length === 0 ? (
+        <Reveal delay={150}>
+          <div className="bg-panel/40 border border-border2 p-10 rounded-2xl text-center space-y-4 max-w-xl mx-auto my-6 backdrop-blur-xl">
+            <div className="w-12 h-12 rounded-2xl bg-amber/10 border border-amber/25 flex items-center justify-center mx-auto text-amber">
+              <ConnectionsIcon size={24} />
             </div>
-          </Reveal>
-        ))}
-      </div>
+            <div>
+              <h3 className="font-display text-lg text-slate-100 mb-1">No Content Drafts Yet</h3>
+              <p className="text-xs text-slate-400 font-mono2 leading-relaxed">
+                {connectedCount === 0
+                  ? 'Connect your social media accounts or paste a transcript above to start generating memory-optimized drafts.'
+                  : 'Paste a video transcript or topic above to let your Content Agent format native drafts.'}
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <Link
+                to="/dashboard/connections"
+                className="inline-flex items-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-medium px-4 py-2 rounded-xl text-xs transition-all shadow-sm"
+              >
+                <LinkIcon className="w-3.5 h-3.5" />
+                Connect Social Accounts
+              </Link>
+              <button
+                onClick={loadDemoData}
+                className="inline-flex items-center gap-2 border border-border2 hover:bg-white/5 text-slate-300 font-medium px-4 py-2 rounded-xl text-xs transition-all"
+              >
+                <RefreshCcw className="w-3.5 h-3.5" />
+                Load Sample Demo Data
+              </button>
+            </div>
+          </div>
+        </Reveal>
+      ) : (
+        <div className="border-t border-border2">
+          {drafts.map((draft, i) => (
+            <Reveal key={draft.id} delay={i * 70}>
+              <div className="grid md:grid-cols-[1fr_auto] gap-6 px-1 py-6 border-b border-border2 items-start">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center text-[10px] font-mono uppercase px-2.5 py-1 rounded-md bg-teal/10 text-teal border border-teal/25">
+                      <PlatformBadgeLogo platformId={draft.platform} />
+                      {platformLabel[draft.platform]}
+                    </span>
+                    <span
+                      className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                        draft.status === 'published'
+                          ? 'bg-emerald2/10 text-emerald2 border-emerald2/25'
+                          : 'bg-amber/10 text-amber border-amber/25'
+                      }`}
+                    >
+                      {draft.status === 'published' ? 'Published' : 'Pending approval'}
+                    </span>
+                  </div>
+
+                  <div className="bg-canvas/50 p-3.5 rounded-xl border border-border2">
+                    <div className="text-[10px] uppercase font-mono text-slate-500 mb-1">Memory-optimized hook</div>
+                    <p className="text-xs font-medium text-amber">{draft.hook}</p>
+                  </div>
+
+                  <div className="bg-canvas/30 p-3.5 rounded-xl border border-border2">
+                    <div className="text-[10px] uppercase font-mono text-slate-500 mb-1">Body</div>
+                    <p className="text-xs text-slate-300 whitespace-pre-wrap font-mono2 leading-relaxed">{draft.body}</p>
+                  </div>
+
+                  {draft.cta && (
+                    <div className="text-[11px] text-slate-300 bg-white/[0.03] p-2.5 rounded-lg border border-border2">
+                      <strong className="text-slate-100">CTA:</strong> {draft.cta}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col items-end justify-between gap-3 shrink-0">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 whitespace-nowrap">
+                    <AlertCircle className="w-3.5 h-3.5 text-teal" />
+                    <span>Virality: <strong className="text-slate-100">{draft.predictedPerformanceScore}%</strong></span>
+                  </div>
+
+                  {draft.status === 'pending_approval' ? (
+                    <button
+                      onClick={() => approveDraft(draft.id)}
+                      className="flex items-center gap-1.5 bg-amber hover:bg-amber-soft text-[#08090A] text-xs font-medium py-2 px-4 rounded-xl transition-all whitespace-nowrap shadow-sm"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      Approve & publish
+                    </button>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs text-emerald2 font-medium whitespace-nowrap">
+                      <Send className="w-3.5 h-3.5" />
+                      Live on platform
+                    </span>
+                  )}
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
