@@ -1,7 +1,9 @@
 import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 import { OrbitMark } from './OrbitMark';
+import { UserProfileSidebar } from './ui/menu';
+import { useDashboard } from '../context/DashboardContext';
 import {
   OverviewIcon,
   CoordinatorIcon,
@@ -11,57 +13,87 @@ import {
   ConnectionsIcon,
 } from './Icons';
 
-const links = [
-  { to: '/dashboard', label: 'Overview', icon: OverviewIcon, end: true },
-  { to: '/dashboard/coordinator', label: 'Coordinator', icon: CoordinatorIcon },
-  { to: '/dashboard/growth', label: 'Growth agent', icon: GrowthIcon },
-  { to: '/dashboard/content', label: 'Content agent', icon: ContentIcon },
-  { to: '/dashboard/analytics', label: 'Analytics agent', icon: AnalyticsIcon },
-  { to: '/dashboard/connections', label: 'Connections', icon: ConnectionsIcon },
-];
-
 export const Sidebar: React.FC = () => {
+  const { user, logout } = useDashboard();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const userProfile = {
+    name: user?.name || 'Alex Creator',
+    email: user?.email || 'creator@creatoros.ai',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+  };
+
+  const navItems = [
+    {
+      label: 'Overview',
+      href: '/dashboard',
+      icon: <OverviewIcon size={16} />,
+      isActive: location.pathname === '/dashboard',
+      onClick: () => navigate('/dashboard'),
+    },
+    {
+      label: 'Coordinator',
+      href: '/dashboard/coordinator',
+      icon: <CoordinatorIcon size={16} />,
+      isActive: location.pathname === '/dashboard/coordinator',
+      onClick: () => navigate('/dashboard/coordinator'),
+    },
+    {
+      label: 'Growth agent',
+      href: '/dashboard/growth',
+      icon: <GrowthIcon size={16} />,
+      isActive: location.pathname === '/dashboard/growth',
+      onClick: () => navigate('/dashboard/growth'),
+    },
+    {
+      label: 'Content agent',
+      href: '/dashboard/content',
+      icon: <ContentIcon size={16} />,
+      isActive: location.pathname === '/dashboard/content',
+      onClick: () => navigate('/dashboard/content'),
+    },
+    {
+      label: 'Analytics agent',
+      href: '/dashboard/analytics',
+      icon: <AnalyticsIcon size={16} />,
+      isActive: location.pathname === '/dashboard/analytics',
+      onClick: () => navigate('/dashboard/analytics'),
+    },
+    {
+      label: 'Connections',
+      href: '/dashboard/connections',
+      icon: <ConnectionsIcon size={16} />,
+      isActive: location.pathname === '/dashboard/connections',
+      onClick: () => navigate('/dashboard/connections'),
+      isSeparator: true,
+    },
+  ];
+
+  const logoutItem = {
+    label: 'Sign out',
+    icon: <LogOut size={16} />,
+    onClick: () => {
+      logout();
+      navigate('/');
+    },
+  };
+
   return (
-    <aside className="relative w-60 shrink-0 border-r border-border2 h-screen sticky top-0 flex flex-col bg-panel/60 backdrop-blur-md overflow-hidden">
-      <Link to="/" className="relative h-16 flex items-center gap-2.5 px-5 border-b border-border2 hover:bg-white/[0.03] transition-colors">
+    <aside className="relative w-64 shrink-0 border-r border-border2 h-screen sticky top-0 flex flex-col bg-panel/60 backdrop-blur-md overflow-hidden p-3 space-y-3">
+      <Link to="/" className="flex items-center gap-2.5 px-3 py-2 border-b border-border2 hover:bg-white/[0.03] transition-colors rounded-xl">
         <OrbitMark size={26} animate={false} />
         <span className="font-display text-sm">
           Creator<span className="text-amber font-semibold">OS</span>
         </span>
       </Link>
 
-      <nav className="relative flex-1 px-3 py-4 space-y-1">
-        {links.map((link) => {
-          const Icon = link.icon;
-          return (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.end}
-              className={({ isActive }: { isActive: boolean }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all border-l-2 ${
-                  isActive
-                    ? 'text-slate-50 border-amber bg-white/[0.06] shadow-sm'
-                    : 'text-slate-400 border-transparent hover:text-slate-100 hover:bg-white/[0.03]'
-                }`
-              }
-            >
-              <Icon size={16} />
-              {link.label}
-            </NavLink>
-          );
-        })}
-      </nav>
-
-      <div className="relative px-3 pb-4">
-        <Link
-          to="/"
-          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs text-slate-500 hover:text-slate-100 hover:bg-white/[0.04] transition-colors"
-        >
-          <ArrowLeft size={16} />
-          Back to home
-        </Link>
-      </div>
+      <UserProfileSidebar
+        user={userProfile}
+        navItems={navItems}
+        logoutItem={logoutItem}
+        className="flex-1 max-w-full bg-transparent border-none p-0 shadow-none"
+      />
     </aside>
   );
 };
