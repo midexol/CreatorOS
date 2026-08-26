@@ -30,8 +30,8 @@ export default {
         "border2-strong": "rgba(255, 255, 255, 0.24)",
       },
       fontFamily: {
-        display: ["Fraunces", "serif"],
-        body: ["Inter", "sans-serif"],
+        display: ["Gendy", "Syne", "Fraunces", "serif"],
+        body: ["Space Grotesk", "Inter", "sans-serif"],
         mono2: ["IBM Plex Mono", "monospace"],
       },
       keyframes: {
@@ -40,14 +40,9 @@ export default {
           "50%": { transform: "scale(1.22) translate(-2%, -1.6%)" },
           "100%": { transform: "scale(1.1) translate(0, 0)" },
         },
-        dotdrift: {
-          "0%": { backgroundPosition: "0 0" },
-          "100%": { backgroundPosition: "26px 26px" },
-        },
       },
       animation: {
         kenburns: "kenburns 18s ease-in-out infinite",
-        dotdrift: "dotdrift 14s linear infinite",
       },
     },
   },
