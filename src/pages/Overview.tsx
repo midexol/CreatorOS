@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useDashboard } from '../context/DashboardContext';
 import { Reveal } from '../components/Reveal';
 import { OverviewIcon, ConnectionsIcon } from '../components/Icons';
+import { DelegationStepper } from '../components/DelegationStepper';
 
 const suggestions = [
   'Grow my YouTube channel',
@@ -16,6 +17,7 @@ export const Overview: React.FC = () => {
     profile,
     opportunities,
     drafts,
+    trace,
     connectedCount,
     isExecuting,
     runGoal,
@@ -95,6 +97,7 @@ export const Overview: React.FC = () => {
         </div>
       </Reveal>
 
+      {/* Goal Input Card */}
       <Reveal delay={140}>
         <div className="bg-panel/40 border border-border2 p-6 rounded-2xl backdrop-blur-xl space-y-4">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -149,6 +152,13 @@ export const Overview: React.FC = () => {
         </div>
       </Reveal>
 
+      {/* Live Simplified Progress Stepper directly on Overview */}
+      {(isExecuting || trace.length > 0) && (
+        <Reveal delay={160}>
+          <DelegationStepper steps={trace} drafts={drafts} isExecuting={isExecuting} />
+        </Reveal>
+      )}
+
       {isEmpty ? (
         <Reveal delay={180}>
           <p className="text-sm text-slate-400">
@@ -156,7 +166,7 @@ export const Overview: React.FC = () => {
             <button onClick={loadDemoData} className="text-amber hover:underline font-semibold">
               Load sample data
             </button>{' '}
-            if you want to preview sample metrics.
+            if you want to preview sample metrics & connected accounts.
           </p>
         </Reveal>
       ) : (

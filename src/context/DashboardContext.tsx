@@ -82,6 +82,14 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [, setTick] = useState(0);
   const [isExecuting, setIsExecuting] = useState(false);
   const [zernioAccounts, setZernioAccounts] = useState<ZernioAccount[]>([]);
+  const [demoAccounts, setDemoAccounts] = useState<Platform[]>(() => {
+    try {
+      const saved = localStorage.getItem('creatoros_demo_accounts');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [zernioConfigured, setZernioConfigured] = useState<boolean | null>(null);
   const [connectingPlatform, setConnectingPlatform] = useState<Platform | null>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -342,11 +350,12 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const platforms: PlatformStatus[] = platformIds.map((id) => {
     const zPlatform = zernioPlatformFor(id);
     const account = zernioAccounts.find((a) => a.platform === zPlatform);
+    const isDemoConnected = demoAccounts.includes(id);
     return {
       id,
       name: PLATFORM_NAMES[id],
-      status: account ? 'connected' : connectingPlatform === id ? 'connecting' : 'disconnected',
-      accountId: account?._id,
+      status: account || isDemoConnected ? 'connected' : connectingPlatform === id ? 'connecting' : 'disconnected',
+      accountId: account?._id || (isDemoConnected ? `demo_${id}` : undefined),
     };
   });
 
@@ -354,12 +363,17 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const loadDemoData = () => {
     mindsStore.loadDemoData();
+    const mockAccounts: Platform[] = ['twitter', 'linkedin', 'youtube_shorts'];
+    setDemoAccounts(mockAccounts);
+    localStorage.setItem('creatoros_demo_accounts', JSON.stringify(mockAccounts));
     refreshState();
-    pushNotification('Loaded sample demo data');
+    pushNotification('Loaded sample demo data with connected social accounts');
   };
 
   const resetToFresh = () => {
     mindsStore.resetToFresh();
+    setDemoAccounts([]);
+    localStorage.removeItem('creatoros_demo_accounts');
     refreshState();
     pushNotification('Reset to fresh account');
   };
