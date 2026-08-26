@@ -77,11 +77,11 @@ export const UserProfileSidebar = React.forwardRef<HTMLDivElement, UserProfileSi
           )}
           title={isCollapsed ? `${user.name} (${user.email})` : undefined}
         >
-          <UserAvatar name={user.name} avatarUrl={user.avatarUrl} size={isCollapsed ? 34 : 38} />
+          <UserAvatar name={user.name} avatarUrl={user.avatarUrl} size={isCollapsed ? 34 : 40} />
           {!isCollapsed && (
             <div className="flex flex-col truncate">
-              <span className="font-semibold text-xs text-slate-100 truncate">{user.name}</span>
-              <span className="text-[11px] text-slate-400 truncate">{user.email}</span>
+              <span className="font-semibold text-sm text-slate-100 truncate">{user.name}</span>
+              <span className="text-xs text-slate-300 truncate">{user.email}</span>
             </div>
           )}
         </motion.div>
@@ -104,18 +104,18 @@ export const UserProfileSidebar = React.forwardRef<HTMLDivElement, UserProfileSi
                 }}
                 variants={itemVariants}
                 className={cn(
-                  'group flex items-center rounded-xl py-2 text-xs font-medium transition-all border-l-2',
+                  'group flex items-center rounded-xl py-2.5 text-sm font-medium transition-all border-l-2',
                   isCollapsed ? 'justify-center px-0 border-l-0' : 'px-3',
                   item.isActive
                     ? 'text-slate-50 border-amber bg-white/[0.08] shadow-sm'
-                    : 'text-slate-400 border-transparent hover:text-slate-100 hover:bg-white/[0.04]'
+                    : 'text-slate-300 border-transparent hover:text-slate-50 hover:bg-white/[0.04]'
                 )}
               >
                 <span
                   className={cn(
                     'h-4 w-4 shrink-0 flex items-center justify-center transition-all',
                     !isCollapsed && 'mr-2.5',
-                    item.isActive ? 'text-amber' : 'text-slate-400 group-hover:text-slate-200'
+                    item.isActive ? 'text-amber' : 'text-slate-300 group-hover:text-slate-100'
                   )}
                 >
                   {item.icon}
@@ -137,7 +137,7 @@ export const UserProfileSidebar = React.forwardRef<HTMLDivElement, UserProfileSi
             onClick={logoutItem.onClick}
             title={isCollapsed ? logoutItem.label : undefined}
             className={cn(
-              'group flex w-full items-center rounded-xl py-2 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/10',
+              'group flex w-full items-center rounded-xl py-2.5 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10',
               isCollapsed ? 'justify-center px-0' : 'px-3'
             )}
           >
