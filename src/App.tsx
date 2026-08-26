@@ -1,10 +1,7 @@
-import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Brain } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { AmbientBackground } from './components/AmbientBackground';
 import { NotificationBell } from './components/NotificationBell';
-import { MindsMemoryInspector } from './components/MindsMemoryInspector';
 import { DashboardProvider, useDashboard } from './context/DashboardContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Landing } from './pages/Landing';
@@ -14,10 +11,10 @@ import { GrowthPage } from './pages/GrowthPage';
 import { ContentPage } from './pages/ContentPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { ConnectionsPage } from './pages/ConnectionsPage';
+import { SettingsPage } from './pages/SettingsPage';
 
 function DashboardShell() {
   const { notifications, user, logout } = useDashboard();
-  const [isMemoryOpen, setIsMemoryOpen] = useState(false);
 
   return (
     <div className="min-h-screen text-slate-100 flex relative font-body">
@@ -34,14 +31,6 @@ function DashboardShell() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsMemoryOpen(true)}
-              className="flex items-center gap-2 text-xs font-medium text-teal bg-teal/10 hover:bg-teal/20 px-3 py-1.5 rounded-xl border border-teal/30 transition-all shadow-sm"
-            >
-              <Brain className="w-3.5 h-3.5 text-teal animate-pulse" />
-              <span>Minds Memory Engine</span>
-            </button>
-
             <NotificationBell notifications={notifications} />
 
             <button
@@ -66,12 +55,11 @@ function DashboardShell() {
               <Route path="content" element={<ContentPage />} />
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="connections" element={<ConnectionsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
             </Routes>
           </div>
         </div>
       </main>
-
-      <MindsMemoryInspector isOpen={isMemoryOpen} onClose={() => setIsMemoryOpen(false)} />
     </div>
   );
 }

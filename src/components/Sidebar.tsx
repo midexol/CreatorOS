@@ -11,6 +11,7 @@ import {
   ContentIcon,
   AnalyticsIcon,
   ConnectionsIcon,
+  SettingsIcon,
 } from './Icons';
 
 export const Sidebar: React.FC = () => {
@@ -66,6 +67,13 @@ export const Sidebar: React.FC = () => {
       icon: <ConnectionsIcon size={16} />,
       isActive: location.pathname === '/dashboard/connections',
       onClick: () => navigate('/dashboard/connections'),
+    },
+    {
+      label: 'Settings',
+      href: '/dashboard/settings',
+      icon: <SettingsIcon size={16} />,
+      isActive: location.pathname === '/dashboard/settings',
+      onClick: () => navigate('/dashboard/settings'),
       isSeparator: true,
     },
   ];
