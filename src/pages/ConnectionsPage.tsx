@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowUpRight, AlertTriangle } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 import { Reveal } from '../components/Reveal';
-import { ConnectionsIcon, XIcon, LinkedInIcon, YouTubeIcon } from '../components/Icons';
+import { ConnectionsIcon, XIcon, LinkedInIcon, YouTubeIcon, InstagramIcon, TikTokIcon, ThreadsIcon } from '../components/Icons';
 import { Platform } from '../types';
 
 const statusMeta = {
@@ -14,6 +14,9 @@ const statusMeta = {
 const PlatformLogo: React.FC<{ platformId: Platform }> = ({ platformId }) => {
   if (platformId === 'twitter') return <XIcon size={16} className="text-white" />;
   if (platformId === 'linkedin') return <LinkedInIcon size={16} className="text-[#0A66C2]" />;
+  if (platformId === 'instagram') return <InstagramIcon size={16} className="text-[#E4405F]" />;
+  if (platformId === 'tiktok') return <TikTokIcon size={16} className="text-[#00F2FE]" />;
+  if (platformId === 'threads') return <ThreadsIcon size={16} className="text-slate-200" />;
   return <YouTubeIcon size={16} className="text-[#FF0000]" />;
 };
 
@@ -31,8 +34,7 @@ export const ConnectionsPage: React.FC = () => {
           <span className="text-xs font-mono2 text-slate-400">{connectedCount} connected</span>
         </div>
         <p className="text-slate-400 text-sm max-w-xl">
-          Connect your X (Twitter), LinkedIn, YouTube Shorts, and YouTube Longform channels. Once connected, approved drafts publish
-          live to social networks automatically.
+          Connect your LinkedIn, YouTube, Instagram, TikTok, Threads, and X channels. Free platforms connect instantly with $0 API fees.
         </p>
       </Reveal>
 
@@ -52,8 +54,8 @@ export const ConnectionsPage: React.FC = () => {
         {platforms.map((p, i) => {
           const meta = statusMeta[p.status];
           return (
-            <Reveal key={p.id} delay={i * 70}>
-              <div className="flex items-center justify-between py-5 border-b border-border2">
+            <Reveal key={p.id} delay={i * 50}>
+              <div className="flex items-center justify-between py-4 border-b border-border2">
                 <div className="flex items-center gap-3.5">
                   <div className="w-9 h-9 rounded-xl bg-white/[0.05] border border-border2 flex items-center justify-center shrink-0">
                     <PlatformLogo platformId={p.id} />
@@ -62,6 +64,15 @@ export const ConnectionsPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-slate-100">{p.name}</p>
                       <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+                      {p.id !== 'twitter' ? (
+                        <span className="text-[9px] font-mono uppercase bg-emerald2/10 text-emerald2 border border-emerald2/20 px-1.5 py-0.5 rounded">
+                          $0 Free
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-mono uppercase bg-amber/10 text-amber border border-amber/20 px-1.5 py-0.5 rounded">
+                          Paid API
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-slate-500 font-mono2 mt-0.5">{meta.label}</p>
                   </div>

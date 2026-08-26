@@ -39,7 +39,10 @@ const PLATFORM_NAMES: Record<Platform, string> = {
   twitter: 'X / Twitter',
   linkedin: 'LinkedIn',
   youtube_shorts: 'YouTube Shorts',
-  youtube_longform: 'YouTube Video (Longform)',
+  youtube_longform: 'YouTube Video',
+  instagram: 'Instagram',
+  tiktok: 'TikTok',
+  threads: 'Threads',
 };
 
 interface DashboardContextValue {
@@ -54,7 +57,7 @@ interface DashboardContextValue {
   isExecuting: boolean;
   platforms: PlatformStatus[];
   connectedCount: number;
-  zernioConfigured: boolean | null; // null = still checking
+  zernioConfigured: boolean | null;
   runGoal: (goalText: string, targetPlatform?: Platform) => Promise<void>;
   triggerTrendScan: () => Promise<void>;
   generateDraft: (opp: TrendOpportunity, platform: Platform) => Promise<void>;
@@ -215,7 +218,15 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  const platformIds: Platform[] = ['twitter', 'linkedin', 'youtube_shorts', 'youtube_longform'];
+  const platformIds: Platform[] = [
+    'linkedin',
+    'youtube_shorts',
+    'youtube_longform',
+    'instagram',
+    'tiktok',
+    'threads',
+    'twitter',
+  ];
   const platforms: PlatformStatus[] = platformIds.map((id) => {
     const zPlatform = zernioPlatformFor(id);
     const account = zernioAccounts.find((a) => a.platform === zPlatform);

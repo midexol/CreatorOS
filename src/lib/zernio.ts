@@ -5,6 +5,9 @@ const ZERNIO_PLATFORM: Record<Platform, string> = {
   linkedin: 'linkedin',
   youtube_shorts: 'youtube',
   youtube_longform: 'youtube',
+  instagram: 'instagram',
+  tiktok: 'tiktok',
+  threads: 'threads',
 };
 
 export interface ZernioAccount {

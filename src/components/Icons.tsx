@@ -84,14 +84,38 @@ export const YouTubeIcon: React.FC<IconProps> = ({ size = 16, className = "" }) 
   </svg>
 );
 
-// 10. Minds AI Official Mark
+// 10. Instagram Official Vector Logo
+export const InstagramIcon: React.FC<IconProps> = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
+
+// 11. TikTok Official Vector Logo
+export const TikTokIcon: React.FC<IconProps> = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 1 1-5.2-1.74 2.89 2.89 0 0 1 2.31-2.84V7.65a6.33 6.33 0 0 0-5.6 6.27 6.34 6.34 0 1 0 11.94-2.73V8.87a8.3 8.3 0 0 0 4.77 1.47V6.89a4.85 4.85 0 0 1-1.00-.2z" />
+  </svg>
+);
+
+// 12. Threads Official Vector Logo
+export const ThreadsIcon: React.FC<IconProps> = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7a5 5 0 0 1 5 5c0 3.5-2.5 5-5 5s-4-1.5-4-3.5c0-1.5 1-2.5 2.5-2.5s2.5 1 2.5 2" />
+  </svg>
+);
+
+// 13. Minds AI Official Mark
 export const MindsIcon: React.FC<IconProps> = ({ size = 16, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
   </svg>
 );
 
-// 11. Zernio Platform Mark
+// 14. Zernio Platform Mark
 export const ZernioIcon: React.FC<IconProps> = ({ size = 16, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
