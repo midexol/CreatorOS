@@ -39,6 +39,7 @@ const PLATFORM_NAMES: Record<Platform, string> = {
   twitter: 'X / Twitter',
   linkedin: 'LinkedIn',
   youtube_shorts: 'YouTube Shorts',
+  youtube_longform: 'YouTube Video (Longform)',
 };
 
 interface DashboardContextValue {
@@ -76,7 +77,6 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [connectingPlatform, setConnectingPlatform] = useState<Platform | null>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
-  // Auth User Session State
   const [user, setUser] = useState<UserSession | null>(() => {
     try {
       const saved = localStorage.getItem('creatoros_auth_user');
@@ -184,7 +184,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const manualGenerate = async (input: string) => {
     await contentAgent.generateDraftsFromTranscript(input);
     refreshState();
-    pushNotification('Repurposed into 3 platform-native drafts');
+    pushNotification('Repurposed into native drafts');
   };
 
   const connectPlatform = async (id: Platform) => {
@@ -215,7 +215,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  const platformIds: Platform[] = ['twitter', 'linkedin', 'youtube_shorts'];
+  const platformIds: Platform[] = ['twitter', 'linkedin', 'youtube_shorts', 'youtube_longform'];
   const platforms: PlatformStatus[] = platformIds.map((id) => {
     const zPlatform = zernioPlatformFor(id);
     const account = zernioAccounts.find((a) => a.platform === zPlatform);

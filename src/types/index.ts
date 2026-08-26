@@ -1,4 +1,4 @@
-export type Platform = 'twitter' | 'linkedin' | 'youtube_shorts';
+export type Platform = 'twitter' | 'linkedin' | 'youtube_shorts' | 'youtube_longform';
 
 export interface CreatorProfile {
   name: string;

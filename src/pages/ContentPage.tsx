@@ -9,6 +9,7 @@ const platformLabel: Record<string, string> = {
   twitter: 'X / Twitter thread',
   linkedin: 'LinkedIn post',
   youtube_shorts: 'YT Shorts script',
+  youtube_longform: 'YouTube Longform Video',
 };
 
 const PlatformBadgeLogo: React.FC<{ platformId: Platform }> = ({ platformId }) => {
@@ -41,7 +42,7 @@ export const ContentPage: React.FC = () => {
           </div>
           <p className="text-xs text-slate-400 mb-4 max-w-xl">
             Paste a video script, transcript, or article link. The Content agent reads performance
-            memory to adapt hook styles before formatting native posts.
+            memory to adapt hook styles before formatting native posts for X, LinkedIn, YouTube Shorts, and YouTube Longform.
           </p>
           <form onSubmit={handleSubmit} className="flex gap-3">
             <input

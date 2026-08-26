@@ -31,8 +31,8 @@ export const ConnectionsPage: React.FC = () => {
           <span className="text-xs font-mono2 text-slate-400">{connectedCount} connected</span>
         </div>
         <p className="text-slate-400 text-sm max-w-xl">
-          Connect the accounts you want CreatorOS to post to. Once connected, approved drafts publish
-          live to social networks, and engagement feeds back into your next batch of ideas.
+          Connect your X (Twitter), LinkedIn, YouTube Shorts, and YouTube Longform channels. Once connected, approved drafts publish
+          live to social networks automatically.
         </p>
       </Reveal>
 

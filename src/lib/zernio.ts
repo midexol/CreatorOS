@@ -1,12 +1,10 @@
 import { Platform } from '../types';
 
-// Maps our internal Platform union to Zernio's platform values.
-// Zernio uses 'youtube', not 'youtube_shorts' — YouTube Shorts is just a
-// video uploaded to the connected YouTube account.
 const ZERNIO_PLATFORM: Record<Platform, string> = {
   twitter: 'twitter',
   linkedin: 'linkedin',
   youtube_shorts: 'youtube',
+  youtube_longform: 'youtube',
 };
 
 export interface ZernioAccount {
@@ -21,7 +19,10 @@ export class NotConfiguredError extends Error {}
 async function parseOrThrow(res: Response) {
   const data = await res.json().catch(() => ({}));
   if (res.status === 503) throw new NotConfiguredError(data.message || 'Zernio is not configured yet');
-  if (!res.ok) throw new Error(data.message || `Request failed (${res.status})`);
+  if (!res.ok) {
+    const errorMsg = data.error || data.message || `Request failed (${res.status})`;
+    throw new Error(errorMsg);
+  }
   return data;
 }
 
