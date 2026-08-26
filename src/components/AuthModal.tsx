@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { X, Mail, Lock, User, ArrowRight, UserCheck, Plus } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 
 interface AuthModalProps {
@@ -34,6 +34,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
   const { signupWithEmail, loginWithEmail, loginWithGoogle } = useDashboard();
   const navigate = useNavigate();
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
+  const [showGooglePicker, setShowGooglePicker] = useState(false);
+  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
+  const [showCustomEmailInput, setShowCustomEmailInput] = useState(false);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -65,10 +69,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
     }
   };
 
-  const handleGoogleAuth = async () => {
+  const handleSelectGoogleAccount = async (targetEmail: string, targetName?: string) => {
     setLoading(true);
     try {
-      await loginWithGoogle();
+      await loginWithGoogle(targetEmail, targetName);
+      setShowGooglePicker(false);
       onClose();
       navigate('/dashboard');
     } catch (err: any) {
@@ -78,6 +83,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
     }
   };
 
+  const handleCustomGoogleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customGoogleEmail.trim()) return;
+    const cleanEmail = customGoogleEmail.trim();
+    const derivedName = cleanEmail.split('@')[0].replace(/[^a-zA-Z]/g, ' ');
+    const formattedName = derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
+    handleSelectGoogleAccount(cleanEmail, formattedName);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
       <div className="relative w-full max-w-md bg-[#0F172A] border border-border2 rounded-2xl p-6 shadow-2xl space-y-5 text-slate-100">
@@ -85,16 +99,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
         <div className="flex items-center justify-between border-b border-border2 pb-3">
           <div>
             <h2 className="text-lg font-display text-slate-50">
-              {mode === 'signup' ? 'Create your CreatorOS account' : 'Welcome back to CreatorOS'}
+              {showGooglePicker
+                ? 'Choose a Google Account'
+                : mode === 'signup'
+                ? 'Create your CreatorOS account'
+                : 'Welcome back to CreatorOS'}
             </h2>
             <p className="text-xs text-slate-400 font-mono2">
-              {mode === 'signup'
+              {showGooglePicker
+                ? 'Select an account to continue to CreatorOS'
+                : mode === 'signup'
                 ? 'Sign up to manage multi-platform AI scheduling'
                 : 'Sign in to access your agents and content planner'}
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={() => {
+              if (showGooglePicker) {
+                setShowGooglePicker(false);
+                setShowCustomEmailInput(false);
+              } else {
+                onClose();
+              }
+            }}
             className="p-1 text-slate-400 hover:text-slate-100 transition-colors rounded-lg hover:bg-white/10"
           >
             <X className="w-5 h-5" />
@@ -107,107 +134,178 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
           </div>
         )}
 
-        {/* Google OAuth Button */}
-        <button
-          onClick={handleGoogleAuth}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-3 bg-canvas border border-border2 hover:border-amber/40 hover:bg-white/[0.04] text-slate-200 font-medium py-2.5 px-4 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50"
-        >
-          <GoogleLogo size={18} />
-          <span>Continue with Google</span>
-        </button>
+        {/* Google Account Selector Screen */}
+        {showGooglePicker ? (
+          <div className="space-y-3 py-1">
+            <div className="space-y-2">
+              {/* Primary Google User Account */}
+              <button
+                onClick={() => handleSelectGoogleAccount('okunolaolamide7@gmail.com', 'Okunola Olamide')}
+                disabled={loading}
+                className="w-full flex items-center justify-between bg-canvas/80 hover:bg-white/[0.08] border border-border2 hover:border-amber/50 p-3.5 rounded-xl transition-all group text-left shadow-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-teal/20 border border-teal/40 flex items-center justify-center font-bold text-teal text-sm shrink-0">
+                    O
+                  </div>
+                  <div className="truncate">
+                    <span className="font-semibold text-sm text-slate-100 block group-hover:text-amber transition-colors">
+                      Okunola Olamide
+                    </span>
+                    <span className="text-xs text-slate-400 truncate font-mono2 block">
+                      okunolaolamide7@gmail.com
+                    </span>
+                  </div>
+                </div>
+                <UserCheck className="w-4 h-4 text-emerald2 opacity-80" />
+              </button>
 
-        <div className="flex items-center gap-3 my-2">
-          <div className="flex-1 h-px bg-border2" />
-          <span className="text-[10px] font-mono text-slate-500 uppercase">Or with email</span>
-          <div className="flex-1 h-px bg-border2" />
-        </div>
+              {/* Toggle Custom Google Email Input */}
+              {!showCustomEmailInput ? (
+                <button
+                  onClick={() => setShowCustomEmailInput(true)}
+                  className="w-full flex items-center gap-3 bg-canvas/40 hover:bg-white/[0.04] border border-border2 p-3.5 rounded-xl transition-all text-xs text-slate-300 font-medium"
+                >
+                  <div className="w-9 h-9 rounded-full bg-white/5 border border-border2 flex items-center justify-center text-slate-400">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <span>Use another Google account</span>
+                </button>
+              ) : (
+                <form onSubmit={handleCustomGoogleSubmit} className="pt-2 space-y-3">
+                  <label className="block text-xs font-mono text-slate-300">Enter Google Email:</label>
+                  <input
+                    type="email"
+                    required
+                    autoFocus
+                    value={customGoogleEmail}
+                    onChange={(e) => setCustomGoogleEmail(e.target.value)}
+                    placeholder="your.email@gmail.com"
+                    className="w-full bg-canvas border border-border2 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50"
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-amber hover:bg-amber-soft text-[#08090A] font-semibold py-2.5 px-4 rounded-xl text-xs transition-all shadow-sm"
+                  >
+                    Continue with this Google Email
+                  </button>
+                </form>
+              )}
+            </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-3.5">
-          {mode === 'signup' && (
-            <div>
-              <label className="block text-xs font-mono text-slate-400 mb-1">Full Name</label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Alex Rivera"
-                  className="w-full bg-canvas border border-border2 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
-                />
+            <button
+              onClick={() => setShowGooglePicker(false)}
+              className="w-full text-center text-xs text-slate-400 hover:text-slate-200 pt-2 font-mono2"
+            >
+              ← Back to standard login
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Google OAuth Trigger Button */}
+            <button
+              onClick={() => setShowGooglePicker(true)}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-3 bg-canvas border border-border2 hover:border-amber/40 hover:bg-white/[0.04] text-slate-200 font-medium py-2.5 px-4 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50"
+            >
+              <GoogleLogo size={18} />
+              <span>Continue with Google</span>
+            </button>
+
+            <div className="flex items-center gap-3 my-2">
+              <div className="flex-1 h-px bg-border2" />
+              <span className="text-[10px] font-mono text-slate-500 uppercase">Or with email</span>
+              <div className="flex-1 h-px bg-border2" />
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-1">Full Name</label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Alex Rivera"
+                      className="w-full bg-canvas border border-border2 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-mono text-slate-400 mb-1">Email Address</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="creator@domain.com"
+                    className="w-full bg-canvas border border-border2 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
+                  />
+                </div>
               </div>
-            </div>
-          )}
 
-          <div>
-            <label className="block text-xs font-mono text-slate-400 mb-1">Email Address</label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="creator@domain.com"
-                className="w-full bg-canvas border border-border2 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
-              />
-            </div>
-          </div>
+              <div>
+                <label className="block text-xs font-mono text-slate-400 mb-1">Password</label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full bg-canvas border border-border2 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
+                  />
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-xs font-mono text-slate-400 mb-1">Password</label>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                className="w-full bg-canvas border border-border2 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-amber/50 font-medium"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-semibold py-2.5 px-4 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 mt-2"
-          >
-            <span>{mode === 'signup' ? 'Create Account' : 'Sign In'}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </form>
-
-        {/* Toggle Mode Footer */}
-        <div className="text-center pt-2 border-t border-border2">
-          {mode === 'signup' ? (
-            <p className="text-xs text-slate-400">
-              Already have an account?{' '}
               <button
-                type="button"
-                onClick={() => setMode('login')}
-                className="text-amber hover:underline font-medium ml-1"
+                type="submit"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 bg-amber hover:bg-amber-soft text-[#08090A] font-semibold py-2.5 px-4 rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 mt-2"
               >
-                Sign In
+                <span>{mode === 'signup' ? 'Create Account' : 'Sign In'}</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
-            </p>
-          ) : (
-            <p className="text-xs text-slate-400">
-              Don't have an account yet?{' '}
-              <button
-                type="button"
-                onClick={() => setMode('signup')}
-                className="text-amber hover:underline font-medium ml-1"
-              >
-                Sign Up
-              </button>
-            </p>
-          )}
-        </div>
+            </form>
+
+            {/* Toggle Mode Footer */}
+            <div className="text-center pt-2 border-t border-border2">
+              {mode === 'signup' ? (
+                <p className="text-xs text-slate-400">
+                  Already have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setMode('login')}
+                    className="text-amber hover:underline font-medium ml-1"
+                  >
+                    Sign In
+                  </button>
+                </p>
+              ) : (
+                <p className="text-xs text-slate-400">
+                  Don't have an account yet?{' '}
+                  <button
+                    type="button"
+                    onClick={() => setMode('signup')}
+                    className="text-amber hover:underline font-medium ml-1"
+                  >
+                    Sign Up
+                  </button>
+                </p>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
