@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
 
@@ -31,6 +32,7 @@ export const GoogleLogo: React.FC<{ size?: number }> = ({ size = 18 }) => (
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'signup' }) => {
   const { signupWithEmail, loginWithEmail, loginWithGoogle } = useDashboard();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -55,6 +57,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
         await loginWithEmail(email, password);
       }
       onClose();
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
     } finally {
@@ -67,6 +70,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
     try {
       await loginWithGoogle();
       onClose();
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Google sign in failed');
     } finally {

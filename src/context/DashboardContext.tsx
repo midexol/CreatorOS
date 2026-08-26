@@ -47,6 +47,8 @@ const PLATFORM_NAMES: Record<Platform, string> = {
   threads: 'Threads',
 };
 
+const DEFAULT_GOOGLE_CLIENT_ID = '708573177651-sample.apps.googleusercontent.com';
+
 interface DashboardContextValue {
   user: UserSession | null;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
@@ -173,30 +175,17 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const loginWithGoogle = async () => {
     const metaEnv = (import.meta as any).env || {};
-    const googleClientId = metaEnv.VITE_GOOGLE_CLIENT_ID || (window as any).VITE_GOOGLE_CLIENT_ID;
+    const googleClientId = metaEnv.VITE_GOOGLE_CLIENT_ID || (window as any).VITE_GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID;
 
-    // Check if Google Client ID is configured in Vercel environment variables
-    if (googleClientId && typeof googleClientId === 'string' && googleClientId.includes('.apps.googleusercontent.com')) {
-      const redirectUri = `${window.location.origin}/dashboard`;
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(
-        redirectUri
-      )}&response_type=token&scope=email%20profile`;
-      window.location.href = googleAuthUrl;
-      return;
-    }
+    // Triggers Google's native account chooser screen showing all Google accounts on device
+    const redirectUri = `${window.location.origin}/dashboard`;
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
+      googleClientId
+    )}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&response_type=token&scope=email%20profile&prompt=select_account`;
 
-    // Direct Google authentication without any browser prompt popup
-    const googleUser: UserSession = {
-      id: `usr_google_${Date.now()}`,
-      email: 'creator.google@gmail.com',
-      name: 'Google Creator',
-      avatarUrl: 'preset_teal',
-      token: `tok_google_${Date.now()}`,
-    };
-    setUser(googleUser);
-    localStorage.setItem('creatoros_auth_user', JSON.stringify(googleUser));
-    mindsStore.setUserId(googleUser.id);
-    pushNotification(`Signed in with Google as ${googleUser.email}`);
+    window.location.href = googleAuthUrl;
   };
 
   const updateUserAvatar = (avatarUrl: string) => {
