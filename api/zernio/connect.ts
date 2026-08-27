@@ -11,7 +11,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const apiKey = process.env.ZERNIO_API_KEY;
   const profileId = process.env.ZERNIO_PROFILE_ID;
   if (!apiKey || !profileId) {
-    res.status(500).json({ error: 'not_configured', message: 'ZERNIO_API_KEY / ZERNIO_PROFILE_ID are not set' });
+    res.status(503).json({ error: 'not_configured', message: 'ZERNIO_API_KEY / ZERNIO_PROFILE_ID are not set' });
     return;
   }
 

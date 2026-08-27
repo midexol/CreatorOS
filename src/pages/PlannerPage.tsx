@@ -47,7 +47,7 @@ const PLATFORM_CONFIG: Record<Platform, { name: string; icon: React.ReactNode; c
 };
 
 export const PlannerPage: React.FC = () => {
-  const { user, scheduleDraftBackend, connectedCount, platforms } = useDashboard();
+  const { user, scheduleDraftBackend, connectedCount, platforms, pushNotification } = useDashboard();
   const userId = user?.id || 'guest';
 
   // Projects State (Per User)
@@ -132,9 +132,18 @@ export const PlannerPage: React.FC = () => {
     if (e) e.stopPropagation();
     setPublishingId(post.id);
 
+    const platStatus = platforms.find((p) => p.id === post.platform);
+    // A simulated/local connection uses a synthetic `conn_*` id — there's no
+    // real Zernio account behind it, so don't attempt a live publish call.
+    const isLiveAccount = !!platStatus?.accountId && !platStatus.accountId.startsWith('conn_');
+
     try {
-      const platStatus = platforms.find((p) => p.id === post.platform);
-      await publishPost(`${post.title}\n\n${post.body || ''}`, post.platform, platStatus?.accountId);
+      if (isLiveAccount) {
+        await publishPost(`${post.title}\n\n${post.body || ''}`, post.platform, platStatus!.accountId);
+        pushNotification(`Published live to ${post.platform}`);
+      } else {
+        pushNotification(`Marked as published (simulated — no live ${post.platform} account connected)`);
+      }
 
       setScheduledPosts((prev) =>
         prev.map((p) => (p.id === post.id ? { ...p, status: 'published' } : p))
@@ -142,10 +151,9 @@ export const PlannerPage: React.FC = () => {
       if (editingPost && editingPost.id === post.id) {
         setFormStatus('published');
       }
-    } catch {
-      setScheduledPosts((prev) =>
-        prev.map((p) => (p.id === post.id ? { ...p, status: 'published' } : p))
-      );
+    } catch (err: any) {
+      // Live publish genuinely failed — don't mark it published.
+      pushNotification(`Failed to publish to ${post.platform}: ${err?.message || 'unknown error'}`);
     } finally {
       setPublishingId(null);
     }

@@ -11,6 +11,7 @@ import {
   publishPost,
   schedulePost as zernioSchedulePost,
   zernioPlatformFor,
+  getConnectUrl,
   NotConfiguredError,
   ZernioAccount,
 } from '../lib/zernio';
@@ -70,6 +71,7 @@ interface DashboardContextValue {
   loadDemoData: () => void;
   resetToFresh: () => void;
   notifications: AppNotification[];
+  pushNotification: (message: string) => void;
 }
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
@@ -194,19 +196,32 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const zPlatform = zernioPlatformFor(draft.platform);
     const account = zernioAccounts.find((a) => a.platform === zPlatform);
 
-    try {
-      if (account) {
-        await publishPost(`${draft.hook}\n\n${draft.body}`, draft.platform, account._id);
+    if (account) {
+      // Real, live-connected account — actually attempt the Zernio publish and
+      // only report success/failure based on what really happened.
+      try {
+        const result = await publishPost(`${draft.hook}\n\n${draft.body}`, draft.platform, account._id);
+        const realPostId = result?.id || result?._id || result?.post?.id || `post_${Date.now().toString().slice(-4)}`;
+
+        mindsStore.updateDraftStatus(draftId, 'published');
+        await analyticsAgent.recordPostMetrics(realPostId, draft.platform, 9.8, 18500, draft.hook, 'Contrarian');
+        refreshState();
+        pushNotification(`Published live on ${PLATFORM_NAMES[draft.platform]}`);
+      } catch (err: any) {
+        // Do NOT mark the draft published — the live publish genuinely failed.
+        refreshState();
+        pushNotification(`Failed to publish to ${PLATFORM_NAMES[draft.platform]}: ${err?.message || 'unknown error'}`);
       }
-      mindsStore.updateDraftStatus(draftId, 'published');
-      await analyticsAgent.recordPostMetrics(`post_${Date.now().toString().slice(-4)}`, draft.platform, 9.8, 18500, draft.hook, 'Contrarian');
-      refreshState();
-      pushNotification(`Published live on ${PLATFORM_NAMES[draft.platform]}`);
-    } catch {
-      mindsStore.updateDraftStatus(draftId, 'published');
-      refreshState();
-      pushNotification(`Published on ${PLATFORM_NAMES[draft.platform]}`);
+      return;
     }
+
+    // No live account connected for this platform — this is a simulated/local
+    // approval only. Be honest about that in the notification instead of
+    // claiming a live publish that never happened.
+    mindsStore.updateDraftStatus(draftId, 'published');
+    await analyticsAgent.recordPostMetrics(`sim_${Date.now().toString().slice(-4)}`, draft.platform, 9.8, 18500, draft.hook, 'Contrarian');
+    refreshState();
+    pushNotification(`Marked as published (simulated — no live ${PLATFORM_NAMES[draft.platform]} account connected)`);
   };
 
   const scheduleDraftBackend = async (content: string, platform: Platform, scheduledAtISO: string) => {
@@ -226,9 +241,22 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     pushNotification('Repurposed into native drafts');
   };
 
-  // Instant In-App Channel Connection (Per Device User)
   const connectPlatform = async (id: Platform) => {
     setConnectingPlatform(id);
+
+    // Real path: Zernio hosts the entire OAuth exchange, so we just need to
+    // send the browser to the authUrl it gives us. On return, the account
+    // shows up via refreshAccounts()/listAccounts() automatically.
+    try {
+      const authUrl = await getConnectUrl(id);
+      window.location.href = authUrl;
+      return; // navigating away — nothing left to do in this tab
+    } catch (err) {
+      console.warn(`[Zernio] Live connect unavailable for ${id}, falling back to simulated connect:`, err);
+    }
+
+    // Fallback: Zernio isn't configured (or the call failed) — simulate an
+    // instant local connection so the demo still works, per-device only.
     setTimeout(() => {
       setConnectedPlatforms((prev) => {
         const next = Array.from(new Set([...prev, id]));
@@ -236,7 +264,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return next;
       });
       setConnectingPlatform(null);
-      pushNotification(`Connected ${PLATFORM_NAMES[id]} account successfully!`);
+      pushNotification(`Connected ${PLATFORM_NAMES[id]} account (simulated — no live Zernio connection)`);
     }, 400);
   };
 
@@ -326,6 +354,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         loadDemoData,
         resetToFresh,
         notifications,
+        pushNotification,
       }}
     >
       {children}
