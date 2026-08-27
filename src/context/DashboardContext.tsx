@@ -37,11 +37,11 @@ export interface UserSession {
 }
 
 const PLATFORM_NAMES: Record<Platform, string> = {
-  twitter: 'X / Twitter',
-  linkedin: 'LinkedIn',
+  instagram: 'Instagram',
   youtube_shorts: 'YouTube Shorts',
   youtube_longform: 'YouTube Video',
-  instagram: 'Instagram',
+  linkedin: 'LinkedIn',
+  twitter: 'X / Twitter',
   tiktok: 'TikTok',
   threads: 'Threads',
 };
@@ -114,9 +114,9 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [connectedPlatforms, setConnectedPlatforms] = useState<Platform[]>(() => {
     try {
       const saved = localStorage.getItem(`creatoros_connected_platforms_${user.id}`);
-      return saved ? JSON.parse(saved) : ['twitter', 'linkedin', 'youtube_shorts'];
+      return saved ? JSON.parse(saved) : ['instagram', 'youtube_shorts', 'youtube_longform'];
     } catch {
-      return ['twitter', 'linkedin', 'youtube_shorts'];
+      return ['instagram', 'youtube_shorts', 'youtube_longform'];
     }
   });
 
@@ -198,7 +198,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const metrics = mindsStore.getPerformanceHistory();
   const trace = mindsStore.getDelegationTrace();
 
-  const runGoal = async (goalText: string, targetPlatform: Platform = 'twitter') => {
+  const runGoal = async (goalText: string, targetPlatform: Platform = 'youtube_shorts') => {
     if (!goalText.trim() || isExecuting) return;
     setIsExecuting(true);
     await coordinatorAgent.handleUserGoal(goalText, targetPlatform);
@@ -290,11 +290,11 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const platformIds: Platform[] = [
-    'twitter',
-    'linkedin',
+    'instagram',
     'youtube_shorts',
     'youtube_longform',
-    'instagram',
+    'linkedin',
+    'twitter',
     'tiktok',
     'threads',
   ];
@@ -315,11 +315,11 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const loadDemoData = () => {
     mindsStore.loadDemoData();
-    const mockAccounts: Platform[] = ['twitter', 'linkedin', 'youtube_shorts', 'instagram'];
+    const mockAccounts: Platform[] = ['instagram', 'youtube_shorts', 'youtube_longform', 'linkedin'];
     setConnectedPlatforms(mockAccounts);
     localStorage.setItem(`creatoros_connected_platforms_${user.id}`, JSON.stringify(mockAccounts));
     refreshState();
-    pushNotification('Loaded sample demo data with connected social channels');
+    pushNotification('Loaded sample demo data with Instagram & YouTube connected');
   };
 
   const resetToFresh = () => {

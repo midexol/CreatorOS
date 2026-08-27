@@ -5,7 +5,7 @@ export const DEMO_SEED = {
     {
       id: "opp_1",
       topic: "Autonomous AI Agent Memory & Multi-Session State",
-      source: "Reddit r/LocalLLaMA & X Trends",
+      source: "YouTube Creator Trends & Instagram Tech",
       opportunityScore: 96,
       angle: "Why persistent memory is the boundary separating chatbot toys from true production agents",
       category: "AI",
@@ -14,7 +14,7 @@ export const DEMO_SEED = {
     {
       id: "opp_2",
       topic: "Creator Economy Monetization via Tokenized Communities",
-      source: "Open Campus & Animoca Pulse",
+      source: "Instagram Reels & Animoca Pulse",
       opportunityScore: 88,
       angle: "How creators are replacing traditional Patreon subscriptions with autonomous agent rewards",
       category: "Creator Economy",
@@ -34,9 +34,9 @@ export const DEMO_SEED = {
     {
       id: "draft_1",
       opportunityId: "opp_1",
-      platform: "twitter" as const,
+      platform: "instagram" as const,
       hook: "AI agents without memory are glorified search bars.",
-      body: "Here is how persistent multi-session state changes everything for AI builders in 2026 🧵👇\n\n1. Single-session LLMs forget your context the second you refresh.\n2. Autonomous memory namespaces allow agents to write past performance back into state.\n3. Content agents learn what hook styles perform 35% better and adapt autonomously.",
+      body: "Here is how persistent multi-session state changes everything for AI builders in 2026 📸👇\n\n1. Single-session LLMs forget your context the second you refresh.\n2. Autonomous memory namespaces allow agents to write past performance back into state.\n3. Content agents learn what hook styles perform 35% better and adapt autonomously.",
       cta: "What memory architecture are you using for your agents?",
       status: "pending_approval" as const,
       createdAt: "Just now",
@@ -45,10 +45,10 @@ export const DEMO_SEED = {
     {
       id: "draft_2",
       opportunityId: "opp_1",
-      platform: "linkedin" as const,
+      platform: "youtube_shorts" as const,
       hook: "The biggest bottleneck in AI agent deployment isn't model intelligence—it's memory continuity.",
-      body: "Over the last month, we tested multi-agent delegation across 500 creator posts.\n\nThe single biggest performance multiplier? Persistence.\n\nWhen your AI Chief of Staff writes engagement analytics back into its own memory store, every future post inherits historical insights.\n\nStop building stateless prompts. Start building persistent agent systems.",
-      cta: "Read our technical build breakdown in the comments.",
+      body: "[VISUAL: Split screen showing stateless vs persistent agent memory]\n[AUDIO: Fast-paced synth beat]\n\nOver the last month, we tested multi-agent delegation across 500 creator posts.\n\nThe single biggest performance multiplier? Persistence.\n\nWhen your AI Chief of Staff writes engagement analytics back into its own memory store, every future post inherits historical insights.",
+      cta: "Subscribe for more AI creator workflows!",
       status: "pending_approval" as const,
       createdAt: "15 mins ago",
       predictedPerformanceScore: 91
@@ -56,10 +56,10 @@ export const DEMO_SEED = {
     {
       id: "draft_3",
       opportunityId: "opp_3",
-      platform: "youtube_shorts" as const,
+      platform: "youtube_longform" as const,
       hook: "Stop manually cutting 1-hour podcast videos!",
-      body: "[VISUAL: Quick zoom on timeline with 50 cuts]\n[AUDIO: Upbeat tech synth background]\n\nHere is how CreatorOS repurposes long-form audio in 30 seconds:\n1. Transcribe audio transcript\n2. Extract top 5 virality-scored hooks\n3. Generate timed caption scripts with visual cues automatically.",
-      cta: "Subscribe for more AI creator workflows!",
+      body: "In this full tutorial, we break down how CreatorOS repurposes long-form audio in 30 seconds:\n1. Transcribe audio transcript\n2. Extract top 5 virality-scored hooks\n3. Generate timed caption scripts with visual cues automatically.",
+      cta: "Check the description link to try CreatorOS!",
       status: "published" as const,
       createdAt: "1 hour ago",
       predictedPerformanceScore: 88
@@ -68,29 +68,29 @@ export const DEMO_SEED = {
   performanceHistory: [
     {
       postId: "post_101",
-      platform: "twitter" as const,
-      hookStyle: "Contrarian Bold Statement",
-      views: 24500,
-      engagementRate: 8.6,
-      insight: "Contrarian hooks performed +36% higher than generic questions. Retained in memory.",
+      platform: "instagram" as const,
+      hookStyle: "Contrarian Carousel Hook",
+      views: 34500,
+      engagementRate: 9.4,
+      insight: "Contrarian carousel hooks performed +36% higher than generic questions. Retained in memory.",
       timestamp: "Yesterday"
     },
     {
       postId: "post_102",
-      platform: "linkedin" as const,
-      hookStyle: "Case Study & Numbers",
-      views: 18200,
-      engagementRate: 9.1,
-      insight: "Whitespace formatting with 1-sentence paragraphs boosted link clicks by 42%.",
+      platform: "youtube_shorts" as const,
+      hookStyle: "3-Second Visual Problem Hook",
+      views: 58200,
+      engagementRate: 11.2,
+      insight: "Visual split-screen cues increased 30s completion rate by 34%.",
       timestamp: "2 days ago"
     },
     {
       postId: "post_103",
-      platform: "youtube_shorts" as const,
-      hookStyle: "3-Second Visual Problem Hook",
-      views: 52000,
-      engagementRate: 11.4,
-      insight: "Visual cues in square brackets increased 30s completion rate by 28%.",
+      platform: "youtube_longform" as const,
+      hookStyle: "Case Study & Numbers",
+      views: 19400,
+      engagementRate: 8.8,
+      insight: "Timestamped chapter breakdowns boosted subscriber conversion by 42%.",
       timestamp: "3 days ago"
     }
   ] as PerformanceMetric[],
@@ -100,7 +100,7 @@ export const DEMO_SEED = {
       timestamp: "11:58:10",
       agentName: "Coordinator" as const,
       action: "Goal Received",
-      details: 'Objective: "Scale tech audience engagement using latest AI trend signals."',
+      details: 'Objective: "Scale tech audience engagement on YouTube & Instagram using AI trend signals."',
       status: "completed" as const
     },
     {
@@ -108,7 +108,7 @@ export const DEMO_SEED = {
       timestamp: "11:58:12",
       agentName: "Growth Agent" as const,
       action: "Search Trends",
-      details: "Polled X API & Reddit r/LocalLLaMA. Found 'Autonomous AI Agent Memory' (Score: 96/100). Written to growth.opportunities memory.",
+      details: "Polled YouTube Creator Trends & Instagram Tech. Found 'Autonomous AI Agent Memory' (Score: 96/100). Written to growth.opportunities memory.",
       status: "completed" as const
     },
     {
@@ -137,7 +137,7 @@ export class MindsMemoryStore {
     name: "Creator",
     niche: "Tech & AI",
     brandVoice: "Informative, high-signal, punchy",
-    targetAudience: "Tech Enthusiasts & AI Builders",
+    targetAudience: "Tech Enthusiasts & Video Builders",
     cognitionCredits: 1000
   };
 
