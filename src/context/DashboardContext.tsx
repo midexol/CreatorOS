@@ -50,10 +50,6 @@ interface DashboardContextValue {
   user: UserSession;
   updateUserName: (name: string) => void;
   updateUserAvatar: (avatarUrl: string) => void;
-  signupWithEmail: (name: string, email: string, pass: string) => Promise<void>;
-  loginWithEmail: (email: string, pass: string) => Promise<void>;
-  loginWithGoogle: (credentialOrEmail?: string) => Promise<void>;
-  logout: () => Promise<void>;
   profile: CreatorProfile;
   opportunities: TrendOpportunity[];
   drafts: ContentDraft[];
@@ -141,32 +137,6 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setUser(updated);
     localStorage.setItem('creatoros_auth_user', JSON.stringify(updated));
     pushNotification('Profile avatar updated');
-  };
-
-  const signupWithEmail = async (name: string, email: string) => {
-    updateUserName(name);
-    const updated = { ...user, name, email };
-    setUser(updated);
-    localStorage.setItem('creatoros_auth_user', JSON.stringify(updated));
-  };
-
-  const loginWithEmail = async (email: string) => {
-    const name = email.split('@')[0];
-    const updated = { ...user, name, email };
-    setUser(updated);
-    localStorage.setItem('creatoros_auth_user', JSON.stringify(updated));
-  };
-
-  const loginWithGoogle = async (credentialOrEmail?: string) => {
-    const email = credentialOrEmail || user.email;
-    const name = email.split('@')[0];
-    const updated = { ...user, name, email };
-    setUser(updated);
-    localStorage.setItem('creatoros_auth_user', JSON.stringify(updated));
-  };
-
-  const logout = async () => {
-    resetToFresh();
   };
 
   const pushNotification = (message: string) => {
@@ -336,10 +306,6 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         user,
         updateUserName,
         updateUserAvatar,
-        signupWithEmail,
-        loginWithEmail,
-        loginWithGoogle,
-        logout,
         profile,
         opportunities,
         drafts,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { RotateCcw, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { OrbitMark } from './OrbitMark';
 import { UserProfileSidebar } from './ui/menu';
 import { useDashboard } from '../context/DashboardContext';
@@ -16,7 +16,7 @@ import {
 } from './Icons';
 
 export const Sidebar: React.FC = () => {
-  const { user, logout } = useDashboard();
+  const { user, resetToFresh } = useDashboard();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -100,11 +100,10 @@ export const Sidebar: React.FC = () => {
   ];
 
   const logoutItem = {
-    label: 'Sign out',
-    icon: <LogOut size={16} />,
+    label: 'Reset Session',
+    icon: <RotateCcw size={16} />,
     onClick: () => {
-      logout();
-      navigate('/');
+      resetToFresh();
     },
   };
 
