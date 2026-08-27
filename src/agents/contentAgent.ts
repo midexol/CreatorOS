@@ -121,11 +121,20 @@ export class ContentAgent {
     return this.buildFallbackDraft(opportunity, platform);
   }
 
+  // Truncates on the last whitespace before the limit instead of a hard
+  // character cut, so long single-sentence input doesn't end mid-word.
+  private truncateAtWord(text: string, limit: number): string {
+    if (text.length <= limit) return text;
+    const cut = text.slice(0, limit - 3);
+    const lastSpace = cut.lastIndexOf(' ');
+    return `${lastSpace > 0 ? cut.slice(0, lastSpace) : cut}...`;
+  }
+
   private extractTopicAndAngle(transcript: string): { topic: string; angle: string } {
     const cleaned = transcript.trim().replace(/\s+/g, ' ');
     const firstSentence = cleaned.split(/(?<=[.!?])\s/)[0] || cleaned;
-    const topic = firstSentence.length > 80 ? `${firstSentence.slice(0, 77)}...` : firstSentence;
-    const angle = cleaned.length > 220 ? `${cleaned.slice(0, 217)}...` : cleaned;
+    const topic = this.truncateAtWord(firstSentence, 80);
+    const angle = this.truncateAtWord(cleaned, 220);
     return { topic, angle };
   }
 
