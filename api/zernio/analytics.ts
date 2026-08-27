@@ -4,10 +4,11 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const DEFAULT_ZERNIO_KEY = 'sk_your_zernio_api_key_here';
-
 function getZernioConfig() {
-  const apiKey = process.env.ZERNIO_API_KEY || DEFAULT_ZERNIO_KEY;
+  const apiKey = process.env.ZERNIO_API_KEY;
+  if (!apiKey) {
+    throw new Error('not_configured: ZERNIO_API_KEY is not set');
+  }
   return { apiKey };
 }
 
