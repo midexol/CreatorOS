@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
 export interface StoredUser {
   id: string;
@@ -11,8 +12,8 @@ export interface StoredUser {
   createdAt: string;
 }
 
-// Durable local user registry stored in temp/runtime directory
-const DB_PATH = path.join(process.cwd(), 'tmp_user_registry.json');
+// Store in os.tmpdir() for Vercel Serverless environment compatibility
+const DB_PATH = path.join(os.tmpdir(), 'tmp_user_registry.json');
 
 function readDb(): Record<string, StoredUser> {
   try {

@@ -47,11 +47,12 @@ const PLATFORM_NAMES: Record<Platform, string> = {
 };
 
 interface DashboardContextValue {
-  user: UserSession | null;
-  loginWithEmail: (email: string, pass: string) => Promise<void>;
-  signupWithEmail: (name: string, email: string, pass: string) => Promise<void>;
-  loginWithGoogle: (credentialOrEmail?: string) => Promise<void>;
+  user: UserSession;
+  updateUserName: (name: string) => void;
   updateUserAvatar: (avatarUrl: string) => void;
+  signupWithEmail: (name: string, email: string, pass: string) => Promise<void>;
+  loginWithEmail: (email: string, pass: string) => Promise<void>;
+  loginWithGoogle: (credentialOrEmail?: string) => Promise<void>;
   logout: () => Promise<void>;
   profile: CreatorProfile;
   opportunities: TrendOpportunity[];
@@ -77,20 +78,42 @@ interface DashboardContextValue {
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
 
-const DEFAULT_USER: UserSession = {
-  id: 'usr_creator_default',
-  email: 'creator@creatoros.ai',
-  name: 'Creator Chief',
-  avatarUrl: 'preset_amber',
+// Get or generate a persistent, unique per-device client User ID
+const getOrCreateDeviceUser = (): UserSession => {
+  try {
+    const saved = localStorage.getItem('creatoros_auth_user');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed?.id) return parsed;
+    }
+  } catch {
+    // fallback
+  }
+
+  const randomSuffix = Math.random().toString(36).substring(2, 8);
+  const deviceUser: UserSession = {
+    id: `usr_device_${Date.now().toString().slice(-6)}_${randomSuffix}`,
+    email: `creator_${randomSuffix}@creatoros.ai`,
+    name: 'Creator Chief',
+    avatarUrl: 'preset_amber',
+  };
+  try {
+    localStorage.setItem('creatoros_auth_user', JSON.stringify(deviceUser));
+  } catch {
+    // fallback
+  }
+  return deviceUser;
 };
 
 export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [, setTick] = useState(0);
   const [isExecuting, setIsExecuting] = useState(false);
   const [zernioAccounts, setZernioAccounts] = useState<ZernioAccount[]>([]);
+  const [user, setUser] = useState<UserSession>(getOrCreateDeviceUser);
+
   const [connectedPlatforms, setConnectedPlatforms] = useState<Platform[]>(() => {
     try {
-      const saved = localStorage.getItem('creatoros_connected_platforms');
+      const saved = localStorage.getItem(`creatoros_connected_platforms_${user.id}`);
       return saved ? JSON.parse(saved) : ['twitter', 'linkedin', 'youtube_shorts'];
     } catch {
       return ['twitter', 'linkedin', 'youtube_shorts'];
@@ -101,55 +124,16 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [connectingPlatform, setConnectingPlatform] = useState<Platform | null>(null);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
-  const [user, setUser] = useState<UserSession>(() => {
-    try {
-      const saved = localStorage.getItem('creatoros_auth_user');
-      return saved ? JSON.parse(saved) : DEFAULT_USER;
-    } catch {
-      return DEFAULT_USER;
-    }
-  });
-
   useEffect(() => {
     mindsStore.setUserId(user.id);
     refreshState();
-  }, [user]);
+  }, [user.id]);
 
-  const signupWithEmail = async (name: string, email: string) => {
-    const newUser: UserSession = {
-      id: `usr_${Date.now()}`,
-      email,
-      name,
-      avatarUrl: 'preset_amber',
-    };
-    setUser(newUser);
-    localStorage.setItem('creatoros_auth_user', JSON.stringify(newUser));
-    pushNotification(`Welcome to CreatorOS, ${newUser.name}`);
-  };
-
-  const loginWithEmail = async (email: string) => {
-    const newUser: UserSession = {
-      id: `usr_${Date.now()}`,
-      email,
-      name: email.split('@')[0],
-      avatarUrl: 'preset_amber',
-    };
-    setUser(newUser);
-    localStorage.setItem('creatoros_auth_user', JSON.stringify(newUser));
-    pushNotification(`Welcome back, ${newUser.name}`);
-  };
-
-  const loginWithGoogle = async (credentialOrEmail?: string) => {
-    const email = credentialOrEmail || 'creator@creatoros.ai';
-    const newUser: UserSession = {
-      id: `usr_g_${Date.now()}`,
-      email,
-      name: email.split('@')[0],
-      avatarUrl: 'preset_teal',
-    };
-    setUser(newUser);
-    localStorage.setItem('creatoros_auth_user', JSON.stringify(newUser));
-    pushNotification(`Signed in as ${newUser.email}`);
+  const updateUserName = (name: string) => {
+    const updated = { ...user, name };
+    setUser(updated);
+    localStorage.setItem('creatoros_auth_user', JSON.stringify(updated));
+    pushNotification(`Profile name updated to ${name}`);
   };
 
   const updateUserAvatar = (avatarUrl: string) => {
@@ -159,10 +143,30 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     pushNotification('Profile avatar updated');
   };
 
+  const signupWithEmail = async (name: string, email: string) => {
+    updateUserName(name);
+    const updated = { ...user, name, email };
+    setUser(updated);
+    localStorage.setItem('creatoros_auth_user', JSON.stringify(updated));
+  };
+
+  const loginWithEmail = async (email: string) => {
+    const name = email.split('@')[0];
+    const updated = { ...user, name, email };
+    setUser(updated);
+    localStorage.setItem('creatoros_auth_user', JSON.stringify(updated));
+  };
+
+  const loginWithGoogle = async (credentialOrEmail?: string) => {
+    const email = credentialOrEmail || user.email;
+    const name = email.split('@')[0];
+    const updated = { ...user, name, email };
+    setUser(updated);
+    localStorage.setItem('creatoros_auth_user', JSON.stringify(updated));
+  };
+
   const logout = async () => {
-    setUser(DEFAULT_USER);
-    localStorage.setItem('creatoros_auth_user', JSON.stringify(DEFAULT_USER));
-    pushNotification('Reset to default account');
+    resetToFresh();
   };
 
   const pushNotification = (message: string) => {
@@ -228,7 +232,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       await analyticsAgent.recordPostMetrics(`post_${Date.now().toString().slice(-4)}`, draft.platform, 9.8, 18500, draft.hook, 'Contrarian');
       refreshState();
       pushNotification(`Published live on ${PLATFORM_NAMES[draft.platform]}`);
-    } catch (err) {
+    } catch {
       mindsStore.updateDraftStatus(draftId, 'published');
       refreshState();
       pushNotification(`Published on ${PLATFORM_NAMES[draft.platform]}`);
@@ -252,13 +256,13 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     pushNotification('Repurposed into native drafts');
   };
 
-  // Instant In-App Channel Connection (No external redirect!)
+  // Instant In-App Channel Connection (Per Device User)
   const connectPlatform = async (id: Platform) => {
     setConnectingPlatform(id);
     setTimeout(() => {
       setConnectedPlatforms((prev) => {
         const next = Array.from(new Set([...prev, id]));
-        localStorage.setItem('creatoros_connected_platforms', JSON.stringify(next));
+        localStorage.setItem(`creatoros_connected_platforms_${user.id}`, JSON.stringify(next));
         return next;
       });
       setConnectingPlatform(null);
@@ -269,7 +273,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const disconnectPlatform = async (id: Platform) => {
     setConnectedPlatforms((prev) => {
       const next = prev.filter((p) => p !== id);
-      localStorage.setItem('creatoros_connected_platforms', JSON.stringify(next));
+      localStorage.setItem(`creatoros_connected_platforms_${user.id}`, JSON.stringify(next));
       return next;
     });
     const zPlatform = zernioPlatformFor(id);
@@ -313,7 +317,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     mindsStore.loadDemoData();
     const mockAccounts: Platform[] = ['twitter', 'linkedin', 'youtube_shorts', 'instagram'];
     setConnectedPlatforms(mockAccounts);
-    localStorage.setItem('creatoros_connected_platforms', JSON.stringify(mockAccounts));
+    localStorage.setItem(`creatoros_connected_platforms_${user.id}`, JSON.stringify(mockAccounts));
     refreshState();
     pushNotification('Loaded sample demo data with connected social channels');
   };
@@ -321,7 +325,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const resetToFresh = () => {
     mindsStore.resetToFresh();
     setConnectedPlatforms([]);
-    localStorage.removeItem('creatoros_connected_platforms');
+    localStorage.removeItem(`creatoros_connected_platforms_${user.id}`);
     refreshState();
     pushNotification('Reset to fresh account');
   };
@@ -330,10 +334,11 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     <DashboardContext.Provider
       value={{
         user,
-        loginWithEmail,
-        signupWithEmail,
-        loginWithGoogle,
+        updateUserName,
         updateUserAvatar,
+        signupWithEmail,
+        loginWithEmail,
+        loginWithGoogle,
         logout,
         profile,
         opportunities,
