@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, TrendingUp, PenLine, BarChart3, Network, Users, Handshake } from 'lucide-react';
 import { Nav } from '../components/Nav';
@@ -8,8 +8,6 @@ import { ReelBackground } from '../components/ReelBackground';
 import { DelegationTrace } from '../components/DelegationTrace';
 import { Reveal } from '../components/Reveal';
 import { DelegationStep } from '../types';
-import { useDashboard } from '../context/DashboardContext';
-import { AuthModal } from '../components/AuthModal';
 
 const exampleTrace: DelegationStep[] = [
   { id: '1', timestamp: 'now', agentName: 'Coordinator', action: 'Objective received', details: 'Goal: grow my audience', status: 'completed' },
@@ -39,17 +37,7 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 }
 
 export const Landing: React.FC = () => {
-  const { user } = useDashboard();
   const navigate = useNavigate();
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-
-  const handleHeroAction = () => {
-    if (user) {
-      navigate('/dashboard');
-    } else {
-      setIsAuthOpen(true);
-    }
-  };
 
   return (
     <div className="min-h-screen text-slate-100 font-body">
@@ -86,10 +74,10 @@ export const Landing: React.FC = () => {
             </p>
             <div className="flex items-center gap-4">
               <button
-                onClick={handleHeroAction}
-                className="inline-flex items-center gap-2 bg-amber text-[#08090A] font-medium px-5 py-3 rounded-xl hover:bg-amber-soft transition-all shadow-sm"
+                onClick={() => navigate('/dashboard')}
+                className="inline-flex items-center gap-2 bg-amber text-[#08090A] font-semibold px-6 py-3.5 rounded-xl hover:bg-amber-soft transition-all shadow-sm text-sm"
               >
-                {user ? 'Open Dashboard' : 'Get Started'}
+                Open CreatorOS Dashboard
                 <ArrowRight className="w-4 h-4" />
               </button>
               <a href="#how-it-works" className="inline-flex items-center gap-2 text-slate-100/90 hover:text-slate-100 transition-colors px-2 py-3 text-sm">
@@ -215,12 +203,6 @@ export const Landing: React.FC = () => {
           </div>
         </footer>
       </div>
-
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        initialMode="signup"
-      />
     </div>
   );
 };

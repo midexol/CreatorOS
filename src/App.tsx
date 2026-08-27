@@ -15,7 +15,7 @@ import { ConnectionsPage } from './pages/ConnectionsPage';
 import { SettingsPage } from './pages/SettingsPage';
 
 function DashboardShell() {
-  const { notifications, user, logout } = useDashboard();
+  const { notifications, user, resetToFresh } = useDashboard();
 
   return (
     <div className="min-h-screen text-slate-100 flex relative font-body">
@@ -27,7 +27,7 @@ function DashboardShell() {
           <div className="flex items-center gap-3">
             <span className="text-xs font-mono2 text-slate-400">Account:</span>
             <span className="text-xs font-semibold text-amber bg-amber/10 px-2.5 py-1 rounded-full border border-amber/20">
-              {user?.name || user?.email}
+              {user?.name || 'Creator Chief'}
             </span>
           </div>
 
@@ -35,10 +35,10 @@ function DashboardShell() {
             <NotificationBell notifications={notifications} />
 
             <button
-              onClick={logout}
-              className="text-xs text-slate-400 hover:text-slate-100 px-3 py-1.5 rounded-lg border border-border2 hover:bg-white/[0.05] transition-colors"
+              onClick={resetToFresh}
+              className="text-xs text-slate-400 hover:text-slate-100 px-3 py-1.5 rounded-lg border border-border2 hover:bg-white/[0.05] transition-colors font-mono2"
             >
-              Sign out
+              Reset Session
             </button>
           </div>
         </div>
