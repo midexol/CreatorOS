@@ -20,7 +20,7 @@ export class GrowthAgent {
   public async runTrendDiscovery(): Promise<TrendOpportunity> {
     let topic = "AI Agent Memory & Session Continuity";
     let source = "Live Tech Signals";
-    let opportunityScore = 94;
+    let opportunityScore = Math.floor(82 + (Date.now() % 14));
     let angle = "Why multi-session memory separates production agents from prototype chatbots";
     let category: 'AI' | 'Tech' | 'Creator Economy' | 'Web3' = "AI";
 

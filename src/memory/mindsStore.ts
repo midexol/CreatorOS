@@ -1,5 +1,17 @@
 import { CreatorProfile, TrendOpportunity, ContentDraft, PerformanceMetric, DelegationStep } from '../types';
 
+/**
+ * Minds Memory Store Architecture Notice:
+ * ---------------------------------------
+ * CreatorOS utilizes a dual-layer memory persistence architecture:
+ * 1. REAL MINDS API: Draft approval feedback signals and transcript repurposing queries
+ *    transmit directly to persistent conversation threads hosted on Minds (build.hellominds.ai)
+ *    via @animocabrands/minds-client-lib (/api/minds/approve.ts and /api/minds/repurpose.ts).
+ * 2. STRUCTURED CLIENT NAMESPACES: Local client-side state (creator.profile, growth.opportunities,
+ *    content.drafts, analytics.performance_history) is namespaced per user device ID and persisted
+ *    via browser localStorage for zero-latency UI rendering and offline fallback.
+ */
+
 export const DEMO_SEED = {
   opportunities: [
     {

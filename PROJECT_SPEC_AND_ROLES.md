@@ -6,10 +6,10 @@
 ### Executive Overview & Winning Strategy
 **CreatorOS** is an autonomous multi-agent system built natively on **Minds by Animoca Brands** (`hellominds.ai`). It serves as an AI Chief of Staff for digital creators, combining trend monitoring, multi-platform content generation/repurposing, and automated performance feedback loops.
 
-#### Winning the Hackathon Criteria:
-1. **Minds Integration Depth (Score 10/10)**: Uses native Minds Skills, tool-calling delegation, and multi-agent memory namespaces (`creator.profile`, `growth.opportunities`, `content.drafts`, `analytics.performance_history`).
-2. **Persistence Demonstration (Score 10/10)**: Demonstrates true memory continuity across sessions—the Analytics Agent writes engagement data back into Minds memory, which directly changes how the Content Agent crafts future posts.
-3. **Creator-Economy Problem Fit (Score 10/10)**: Solves creator burnout, audience retention, and cross-platform growth.
+#### Hackathon Core Focus Areas:
+1. **Minds Integration Depth**: Uses native Minds Skills, tool-calling delegation, and multi-agent memory namespaces (`creator.profile`, `growth.opportunities`, `content.drafts`, `analytics.performance_history`).
+2. **Persistence Demonstration**: Demonstrates true memory continuity across sessions—the Analytics Agent writes engagement data back into Minds memory, which directly changes how the Content Agent crafts future posts.
+3. **Creator-Economy Problem Fit**: Solves creator burnout, audience retention, and cross-platform growth.
 4. **Execution & Completeness**: Functional working product, interactive dashboard, and tight 1.5–2 min video demo.
 
 ---

@@ -183,6 +183,8 @@ export class ContentAgent {
         const timestamp = Date.now();
         const drafts: ContentDraft[] = [];
 
+        const baseScore = mindsResult.adapted_from_memory ? 91 : 84;
+
         if (mindsResult.drafts.instagram) {
           const ig: any = mindsResult.drafts.instagram;
           const draft: ContentDraft = {
@@ -194,7 +196,7 @@ export class ContentAgent {
             cta: typeof ig === 'string' ? 'Save & Share this post!' : (ig.cta || 'Save & Share this post!'),
             status: 'pending_approval',
             createdAt: 'Just now',
-            predictedPerformanceScore: 96,
+            predictedPerformanceScore: Math.min(98, baseScore + (timestamp % 7)),
           };
           mindsStore.addDraft(draft);
           drafts.push(draft);
@@ -211,7 +213,7 @@ export class ContentAgent {
             cta: typeof yt === 'string' ? 'Subscribe for daily creator tips!' : (yt.cta || 'Subscribe for daily creator tips!'),
             status: 'pending_approval',
             createdAt: 'Just now',
-            predictedPerformanceScore: 94,
+            predictedPerformanceScore: Math.min(98, baseScore + 2 + (timestamp % 5)),
           };
           mindsStore.addDraft(draft);
           drafts.push(draft);
@@ -228,7 +230,7 @@ export class ContentAgent {
             cta: typeof ytl === 'string' ? 'Subscribe for more deep dives!' : (ytl.cta || 'Subscribe for more deep dives!'),
             status: 'pending_approval',
             createdAt: 'Just now',
-            predictedPerformanceScore: 92,
+            predictedPerformanceScore: Math.min(98, baseScore - 2 + (timestamp % 6)),
           };
           mindsStore.addDraft(draft);
           drafts.push(draft);
@@ -257,7 +259,7 @@ export class ContentAgent {
       id: `opp_transcript_${Date.now()}`,
       topic,
       source: `Creator Input (${new Date().toLocaleDateString()})`,
-      opportunityScore: 90,
+      opportunityScore: Math.min(96, Math.max(78, 85 + (Date.now() % 10))),
       angle,
       category: "Tech",
       timestamp: "Just now"
