@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// api/minds/approve.ts — Send approval feedback to Minds conversation thread
+// api/minds/approve.ts — Send structured approval feedback to Minds memory thread (v2)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
@@ -30,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { platform, hookStyle, hook } = req.body || {};
+  const { platform, hookStyle, hook, niche } = req.body || {};
 
   try {
     const client = getClient();
@@ -39,17 +39,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await client.ensureConversation(CONVERSATION_ALIAS, mindId);
 
     const feedbackMessage =
-      `APPROVED: The creator liked the ${String(platform).toUpperCase()} draft.\n` +
-      `Hook style used: ${hookStyle || 'Contrarian'}\n` +
-      `Hook text: "${hook}"\n` +
-      `Remember this preference for future repurposing sessions.`;
+      `SYSTEM:\n` +
+      `You are writing a structured memory-update event for CreatorOS's Minds memory store.\n\n` +
+      `EVENT TYPE: draft_approved\n` +
+      `PLATFORM: ${String(platform || 'instagram').toLowerCase()}\n` +
+      `HOOK_STYLE: ${hookStyle || 'Contrarian'}\n` +
+      `HOOK_TEXT: "${hook || ''}"\n` +
+      `NICHE: ${niche || 'Tech & AI'}\n` +
+      `TIMESTAMP: ${new Date().toISOString()}\n` +
+      `ENGAGEMENT_AT_APPROVAL: unweighted — approval only, no engagement data yet\n\n` +
+      `INSTRUCTIONS:\n` +
+      `Store this as a discrete, retrievable memory entry — not a vague preference. ` +
+      `Future Content Agent queries should be able to pull this exact hook as a reference example.`;
 
     await client.sendMessage({
       alias: CONVERSATION_ALIAS,
       messageText: feedbackMessage,
     });
 
-    return res.status(200).json({ success: true, message: 'Approval recorded in Minds memory' });
+    return res.status(200).json({ success: true, message: 'Structured memory entry recorded in Minds API' });
   } catch (err: any) {
     if (err instanceof MindsNotConfiguredError) {
       return res.status(503).json({ error: err.message });

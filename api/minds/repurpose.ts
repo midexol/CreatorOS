@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// api/minds/repurpose.ts — Vercel serverless function for Minds Repurposing
+// api/minds/repurpose.ts — Vercel serverless function for Minds Repurposing (v2 Prompts)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
@@ -75,14 +75,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const mindId = await getMindId(client);
     await client.ensureConversation(CONVERSATION_ALIAS, mindId);
 
-    const prompt = `CREATOR NICHE: ${niche || 'Tech & AI Creator'}
+    const prompt = `SYSTEM:
+You are the Content Agent inside CreatorOS, a Minds-native multi-agent creator management system. You repurpose raw creator content into platform-native drafts. You have access to this creator's long-term Minds memory (past posts, hook styles, engagement outcomes). You must ground every stylistic choice in that memory or explicitly say you didn't use it — never fabricate a memory reference.
+
+CREATOR NICHE: ${niche || 'Tech & AI Creator'}
 TARGET ANGLE: ${angle ? angle.toUpperCase() : 'CONTRARIAN'}
+PLATFORM CONSTRAINTS:
+- instagram: caption <=2,200 chars, hook in first 125 chars, 3-5 hashtags
+- youtube_shorts: <=60s spoken script, hook in first 3s
+- youtube_longform: chaptered outline with timestamps, 8-15 min pacing
+- linkedin: <=3,000 chars, no emoji-heavy hooks, professional register
+- twitter: <=280 chars per post, thread-able if needed
 
 TRANSCRIPT:
 ${transcript}
 
-Please repurpose this into platform-native content pieces following your instructions.
-Return ONLY valid JSON with keys: adapted_from_memory, memory_insight, drafts (instagram, youtube_shorts, youtube_longform, linkedin, twitter).`;
+INSTRUCTIONS:
+1. Query memory for this creator's highest-performing ${angle || 'contrarian'} hooks. If none exist, set adapted_from_memory to false — do not guess.
+2. Generate one draft per platform below, matching that platform's constraints exactly.
+3. Do not include a virality score, engagement prediction, or any numeric confidence value in this response — that is the Analytics Agent's job, not yours.
+
+Return ONLY valid JSON, no markdown fences, no commentary, matching this exact schema:
+{
+  "adapted_from_memory": boolean,
+  "memory_insight": string,
+  "drafts": {
+    "instagram": string,
+    "youtube_shorts": string,
+    "youtube_longform": string,
+    "linkedin": string,
+    "twitter": string
+  }
+}`;
 
     await client.sendMessage({ alias: CONVERSATION_ALIAS, messageText: prompt });
 
