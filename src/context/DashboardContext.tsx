@@ -71,6 +71,7 @@ interface DashboardContextValue {
   loadDemoData: () => void;
   resetToFresh: () => void;
   notifications: AppNotification[];
+  pushNotification: (message: string) => void;
 }
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
@@ -335,6 +336,7 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         loadDemoData,
         resetToFresh,
         notifications,
+        pushNotification,
       }}
     >
       {children}
