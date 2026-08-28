@@ -81,8 +81,8 @@ TARGET ANGLE: ${angle ? angle.toUpperCase() : 'CONTRARIAN'}
 TRANSCRIPT:
 ${transcript}
 
-Please repurpose this into 3 platform-native content pieces following your instructions.
-Return ONLY valid JSON with keys: adapted_from_memory, memory_insight, drafts (twitter, linkedin, youtube_shorts).`;
+Please repurpose this into platform-native content pieces following your instructions.
+Return ONLY valid JSON with keys: adapted_from_memory, memory_insight, drafts (instagram, youtube_shorts, youtube_longform, linkedin, twitter).`;
 
     await client.sendMessage({ alias: CONVERSATION_ALIAS, messageText: prompt });
 

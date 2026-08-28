@@ -5,6 +5,7 @@ import { growthAgent } from '../agents/growthAgent';
 import { contentAgent } from '../agents/contentAgent';
 import { analyticsAgent } from '../agents/analyticsAgent';
 import { Platform, TrendOpportunity, CreatorProfile, ContentDraft, PerformanceMetric, DelegationStep } from '../types';
+import { sendApprovalToMinds } from '../lib/minds';
 import {
   listAccounts,
   disconnectAccount,
@@ -200,6 +201,14 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
       mindsStore.updateDraftStatus(draftId, 'published');
       await analyticsAgent.recordPostMetrics(`post_${Date.now().toString().slice(-4)}`, draft.platform, 9.8, 18500, draft.hook, 'Contrarian');
+
+      // Transmit approval reinforcement feedback to Minds API
+      try {
+        await sendApprovalToMinds(draft.platform, 'Contrarian', draft.hook);
+      } catch {
+        // ignore if key not configured
+      }
+
       refreshState();
       pushNotification(`Published live on ${PLATFORM_NAMES[draft.platform]}`);
     } catch {

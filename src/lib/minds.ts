@@ -6,9 +6,11 @@ export interface MindsRepurposeResult {
   adapted_from_memory?: boolean;
   memory_insight?: string;
   drafts: {
-    twitter: { hook: string; thread: string[]; cta: string };
-    linkedin: { hook: string; body: string; cta: string };
-    youtube_shorts: { hook: string; script: string; cta: string };
+    instagram?: { hook: string; body: string; cta: string };
+    youtube_shorts?: { hook: string; script: string; cta: string };
+    youtube_longform?: { hook: string; body: string; cta: string };
+    linkedin?: { hook: string; body: string; cta: string };
+    twitter?: { hook: string; thread: string[]; cta: string };
   };
 }
 

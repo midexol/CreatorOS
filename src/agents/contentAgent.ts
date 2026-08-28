@@ -4,7 +4,7 @@ import { repurposeWithMinds, MindsNotConfiguredError } from '../lib/minds';
 
 type HookStyle = 'contrarian' | 'question' | 'stat' | 'story' | 'standard';
 
-const ALL_PLATFORMS: Platform[] = ['twitter', 'linkedin', 'youtube_shorts'];
+const ALL_PLATFORMS: Platform[] = ['instagram', 'youtube_shorts', 'youtube_longform'];
 
 export class ContentAgent {
   public name = "Content Repurposing & Generation Agent";
@@ -32,56 +32,72 @@ export class ContentAgent {
   private craftHook(style: HookStyle, platform: Platform, topic: string): string {
     switch (style) {
       case 'contrarian':
-        return platform === 'twitter'
-          ? `Everyone is wrong about ${topic}. Here's what the data actually shows.`
-          : platform === 'linkedin'
-          ? `Unpopular opinion: most creators are approaching ${topic} completely backwards.`
-          : `Stop. Everything you know about ${topic} is wrong.`;
+        if (platform === 'instagram') return `Stop. Everything you know about ${topic} is wrong 📸👇`;
+        if (platform === 'youtube_shorts') return `The biggest myth about ${topic} is costing you views.`;
+        if (platform === 'youtube_longform') return `Why 90% of creators get ${topic} completely backwards.`;
+        if (platform === 'linkedin') return `Unpopular opinion: most creators are approaching ${topic} completely backwards.`;
+        return `Everyone is wrong about ${topic}. Here's what the data actually shows.`;
+
       case 'question':
-        return platform === 'twitter'
-          ? `What if ${topic} isn't what you think it is?`
-          : platform === 'linkedin'
-          ? `Why are so few creators talking about ${topic}?`
-          : `Ever wonder why ${topic} keeps blowing up?`;
+        if (platform === 'instagram') return `Ever wonder why ${topic} is taking over your feed? 🤔`;
+        if (platform === 'youtube_shorts') return `What if ${topic} was easier than everyone makes it look?`;
+        if (platform === 'youtube_longform') return `Is ${topic} the biggest opportunity for digital creators in 2026?`;
+        if (platform === 'linkedin') return `Why are so few creators talking about ${topic}?`;
+        return `What if ${topic} isn't what you think it is?`;
+
       case 'stat':
-        return platform === 'twitter'
-          ? `${topic} just moved the needle by double digits. Here's the breakdown`
-          : platform === 'linkedin'
-          ? `The numbers on ${topic} are in — and they're bigger than expected.`
-          : `The stats on ${topic} will surprise you.`;
+        if (platform === 'instagram') return `The real numbers behind ${topic} will surprise you 📈`;
+        if (platform === 'youtube_shorts') return `${topic} just generated a +36% retention boost. Here's why.`;
+        if (platform === 'youtube_longform') return `The complete data breakdown on ${topic} (Real Analytics).`;
+        if (platform === 'linkedin') return `The numbers on ${topic} are in — and they're bigger than expected.`;
+        return `${topic} just moved the needle by double digits. Here's the breakdown.`;
+
       case 'story':
-        return platform === 'twitter'
-          ? `I almost missed this: ${topic} is quietly changing everything.`
-          : platform === 'linkedin'
-          ? `Last week I watched ${topic} unfold in real time. Here's what I learned.`
-          : `[VISUAL: Quick hook shot] Here's what happened with ${topic}.`;
+        if (platform === 'instagram') return `I almost missed this: ${topic} is quietly changing everything 📸`;
+        if (platform === 'youtube_shorts') return `[VISUAL: Quick hook shot] Here's what happened with ${topic}.`;
+        if (platform === 'youtube_longform') return `How we built an autonomous system around ${topic}.`;
+        if (platform === 'linkedin') return `Last week I watched ${topic} unfold in real time. Here's what I learned.`;
+        return `I almost missed this: ${topic} is quietly changing everything.`;
+
       default:
-        return platform === 'twitter'
-          ? `${topic} is changing the creator economy right now.`
-          : platform === 'linkedin'
-          ? `Most creators are sleeping on ${topic}. Here's what the data shows:`
-          : `Stop scrolling! Here is the 30-second update on ${topic}.`;
+        if (platform === 'instagram') return `Stop scrolling! Here is the 30-second update on ${topic} 📸`;
+        if (platform === 'youtube_shorts') return `Here is the fastest way to master ${topic} in 30 seconds.`;
+        if (platform === 'youtube_longform') return `The definitive guide to ${topic} for digital creators.`;
+        if (platform === 'linkedin') return `Most creators are sleeping on ${topic}. Here's what the data shows:`;
+        return `${topic} is changing the creator economy right now.`;
     }
   }
 
   private craftBody(platform: Platform, topic: string, angle: string, source: string, score: number): string {
-    if (platform === 'twitter') {
-      return `Here is why this matters and how to stay ahead 👇\n\n1. Angle: ${angle}\n2. Source: Verified via ${source}.\n3. Persistence Loop: Minds agents write performance metrics back into state autonomously.`;
+    if (platform === 'instagram') {
+      return `Here is why this matters and how to stay ahead 📸👇\n\n1. Key Angle: ${angle}\n2. Source: ${source}\n3. Virality Score: ${score}/100\n\nMinds memory agents automatically learn from past post engagement to improve future hooks.`;
+    }
+    if (platform === 'youtube_shorts') {
+      return `[VISUAL: Split screen showing stateless vs persistent agent memory]\n[AUDIO: Fast-paced synth beat]\n\nTopic: ${topic}\nAngle: ${angle}\n[TEXT ON SCREEN: Virality Score ${score}/100]\n[CUT: 3s hook -> 20s explainer -> 7s CTA]`;
+    }
+    if (platform === 'youtube_longform') {
+      return `In this full deep dive video, we explore ${topic} and how to scale your creator workflow:\n\n0:00 - Introduction & Hook\n1:45 - The Problem with Stateless AI\n4:12 - Autonomous Memory with Minds\n8:30 - Step-by-Step Blueprint: ${angle}`;
     }
     if (platform === 'linkedin') {
       return `Over the past week, trend signals scored this topic at ${score}/100 for audience growth potential.\n\nKey Takeaway:\n${angle}\n\nBy leveraging persistent multi-agent memory, creators no longer have to spend 4 hours daily repurposing manually.`;
     }
-    return `[VISUAL: Glowing Minds Agent diagram]\n[AUDIO: Upbeat tech track]\n\nTopic: ${topic}\nAngle: ${angle}\n[TEXT ON SCREEN: Score ${score}/100]\n[CUT: 3s hook -> 20s explainer -> 7s CTA]`;
+    return `Here is why this matters and how to stay ahead 👇\n\n1. Angle: ${angle}\n2. Source: Verified via ${source}.\n3. Persistence Loop: Minds agents write performance metrics back into state autonomously.`;
   }
 
   private craftCta(style: HookStyle, platform: Platform): string {
-    if (platform === 'twitter') {
-      return style === 'question' ? "Reply with your take 👇" : "Retweet to share with fellow builders! What's your take?";
+    if (platform === 'instagram') {
+      return style === 'question' ? "Drop a comment below with your take! 👇" : "Save & Share this post with a fellow creator!";
+    }
+    if (platform === 'youtube_shorts') {
+      return "Subscribe for daily AI creator tips!";
+    }
+    if (platform === 'youtube_longform') {
+      return "Subscribe to the channel and check the description link for CreatorOS!";
     }
     if (platform === 'linkedin') {
       return style === 'stat' ? "Read the full breakdown in the comments." : "Drop your thoughts in the comments below.";
     }
-    return "Follow for daily AI creator tools!";
+    return "Retweet to share with fellow builders!";
   }
 
   private buildFallbackDraft(opportunity: TrendOpportunity, platform: Platform): ContentDraft {
@@ -145,35 +161,18 @@ export class ContentAgent {
         const timestamp = Date.now();
         const drafts: ContentDraft[] = [];
 
-        if (mindsResult.drafts.twitter) {
-          const tw = mindsResult.drafts.twitter;
+        if (mindsResult.drafts.instagram) {
+          const ig = mindsResult.drafts.instagram;
           const draft: ContentDraft = {
-            id: `draft_${timestamp}_twitter`,
+            id: `draft_${timestamp}_instagram`,
             opportunityId: `opp_${timestamp}`,
-            platform: 'twitter',
-            hook: tw.hook,
-            body: Array.isArray(tw.thread) ? tw.thread.join('\n\n') : String(tw.thread || ''),
-            cta: tw.cta,
+            platform: 'instagram',
+            hook: ig.hook,
+            body: ig.body,
+            cta: ig.cta,
             status: 'pending_approval',
             createdAt: 'Just now',
-            predictedPerformanceScore: 95,
-          };
-          mindsStore.addDraft(draft);
-          drafts.push(draft);
-        }
-
-        if (mindsResult.drafts.linkedin) {
-          const li = mindsResult.drafts.linkedin;
-          const draft: ContentDraft = {
-            id: `draft_${timestamp}_linkedin`,
-            opportunityId: `opp_${timestamp}`,
-            platform: 'linkedin',
-            hook: li.hook,
-            body: li.body,
-            cta: li.cta,
-            status: 'pending_approval',
-            createdAt: 'Just now',
-            predictedPerformanceScore: 92,
+            predictedPerformanceScore: 96,
           };
           mindsStore.addDraft(draft);
           drafts.push(draft);
@@ -191,6 +190,23 @@ export class ContentAgent {
             status: 'pending_approval',
             createdAt: 'Just now',
             predictedPerformanceScore: 94,
+          };
+          mindsStore.addDraft(draft);
+          drafts.push(draft);
+        }
+
+        if (mindsResult.drafts.youtube_longform) {
+          const ytl = mindsResult.drafts.youtube_longform;
+          const draft: ContentDraft = {
+            id: `draft_${timestamp}_youtube_longform`,
+            opportunityId: `opp_${timestamp}`,
+            platform: 'youtube_longform',
+            hook: ytl.hook,
+            body: ytl.body,
+            cta: ytl.cta,
+            status: 'pending_approval',
+            createdAt: 'Just now',
+            predictedPerformanceScore: 92,
           };
           mindsStore.addDraft(draft);
           drafts.push(draft);
