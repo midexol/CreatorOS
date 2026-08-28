@@ -9,7 +9,7 @@ const ZERNIO_BASE = 'https://zernio.com/api/v1';
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const apiKey = process.env.ZERNIO_API_KEY;
   if (!apiKey) {
-    res.status(500).json({ error: 'not_configured', message: 'ZERNIO_API_KEY is not set' });
+    res.status(503).json({ error: 'not_configured', message: 'ZERNIO_API_KEY is not set' });
     return;
   }
 
