@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🧠 CreatorOS
+# CreatorOS
 
 ### **Autonomous Multi-Agent AI Chief of Staff for Digital Creators**
 *Powered by [Minds by Animoca Brands](https://hellominds.ai) & Built for Creative Minds Jam #1*
@@ -12,13 +12,13 @@
 
 ---
 
-[🌐 Live Application](https://the-creator-os.vercel.app) • [🎬 Video Demo](https://the-creator-os.vercel.app) • [⚙️ Minds SDK Integration](#-minds-sdk-integration--memory-architecture)
+[Live Application](https://the-creator-os.vercel.app) • [Minds SDK Integration](#minds-sdk-integration--memory-architecture)
 
 </div>
 
 ---
 
-## 💥 The Creator Pain Point
+## The Creator Pain Point
 
 Digital creators face a painful trade-off: **Creating vs. Repurposing**.
 
@@ -27,7 +27,7 @@ Digital creators face a painful trade-off: **Creating vs. Repurposing**.
 
 ---
 
-## ✨ The CreatorOS Solution
+## The CreatorOS Solution
 
 **CreatorOS** solves creator burnout by introducing a **Minds-Native Autonomous Multi-Agent Network** that acts as a 24/7 AI Chief of Staff.
 
@@ -40,13 +40,13 @@ Unlike traditional chatbots, CreatorOS maintains **long-term persistent memory**
                                        │
                                        ▼
                   ┌─────────────────────────────────────────┐
-                  │       🎯 COORDINATOR AGENT (Minds)      │
+                  │       COORDINATOR AGENT (Minds)         │
                   └────────────────────┬────────────────────┘
                                        │
          ┌─────────────────────────────┼─────────────────────────────┐
          ▼                             ▼                             ▼
 ┌─────────────────┐           ┌─────────────────┐           ┌─────────────────┐
-│ 🔍 GROWTH AGENT │           │ ✍️ CONTENT AGENT │           │📊 ANALYTICS AGENT│
+│  GROWTH AGENT   │           │  CONTENT AGENT  │           │ ANALYTICS AGENT │
 │ Real-Time Trend │──────────►│ Native Format   │──────────►│ Persistence     │
 │ Signal Discovery│           │ Repurposing     │           │ Feedback Loop   │
 └─────────────────┘           └─────────────────┘           └─────────────────┘
@@ -60,19 +60,19 @@ Unlike traditional chatbots, CreatorOS maintains **long-term persistent memory**
 
 ---
 
-## 🤖 Specialized Multi-Agent Network
+## Specialized Multi-Agent Network
 
 CreatorOS deploys 4 specialized AI agents working synchronously:
 
-### 1. 🎯 Coordinator Agent (`CoordinatorAgent`)
+### 1. Coordinator Agent (`CoordinatorAgent`)
 - **Function**: Decomposes natural language creator goals into structured sub-agent execution plans.
-- **Trace Stepper**: Generates transparent, human-readable execution steps (*"Goal Received ✓ → Trend Searched ✓ → Native Draft Generated ✓ → Analytics Recorded"*).
+- **Trace Stepper**: Generates transparent, human-readable execution steps (*"Goal Received -> Trend Searched -> Native Draft Generated -> Analytics Recorded"*).
 
-### 2. 🔍 Growth Agent (`GrowthAgent`)
+### 2. Growth Agent (`GrowthAgent`)
 - **Function**: Scours live social signals (HackerNews, YouTube Trends, Reddit RSS) to discover high-opportunity topics in real time.
 - **Dynamic Scoring**: Ranks trends dynamically based on engagement velocity and audience gap score (1–100 scale).
 
-### 3. ✍️ Content Agent (`ContentAgent`)
+### 3. Content Agent (`ContentAgent`)
 - **Function**: Queries persistent Minds Memory to retrieve your brand voice and historical top-performing hook styles.
 - **Multi-Platform Outputs**:
   - **Instagram**: High-retention carousel scripts, <=125-char hooks, and visual pointers.
@@ -80,13 +80,13 @@ CreatorOS deploys 4 specialized AI agents working synchronously:
   - **YouTube Video**: Proportional chaptered outlines with timestamps and custom CTAs.
   - **LinkedIn & X/Twitter**: Thought leadership formatting, whitespace styling, and thread structure.
 
-### 4. 📊 Analytics & Persistence Loop Agent (`AnalyticsAgent`)
+### 4. Analytics & Persistence Loop Agent (`AnalyticsAgent`)
 - **Function**: Monitors engagement performance and transmits structured reinforcement approval signals (`EVENT TYPE: draft_approved`) directly into Minds API memory threads.
 - **Continuous Learning**: Future repurposing sessions automatically adapt hook styles based on recorded historical wins.
 
 ---
 
-## ⚙️ Minds SDK Integration & Memory Architecture
+## Minds SDK Integration & Memory Architecture
 
 CreatorOS is built natively on **Minds by Animoca Brands** (`@animocabrands/minds-client-lib`).
 
@@ -110,16 +110,16 @@ const outcome = await client.waitForReply({ alias: 'repurpose-main', timeoutMs: 
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-- **⚡ Zero Login Blockers**: Instant access with per-device isolated client session memory.
-- **📅 Multi-Project Content Planner**: Visual weekly Kanban timeline, monthly grid, and queue list with client project grouping.
-- **🔌 Zernio Social OAuth Integration**: Direct serverless publishing to connected accounts (Instagram, YouTube, LinkedIn, X/Twitter) via `/api/zernio/`.
-- **🔍 Minds Memory Inspector**: Real-time inspection modal to view active Minds memory keys and historical memory logs.
+- **Zero Login Blockers**: Instant access with per-device isolated client session memory.
+- **Multi-Project Content Planner**: Visual weekly Kanban timeline, monthly grid, and queue list with client project grouping.
+- **Zernio Social OAuth Integration**: Direct serverless publishing to connected accounts (Instagram, YouTube, LinkedIn, X/Twitter) via `/api/zernio/`.
+- **Minds Memory Inspector**: Real-time inspection modal to view active Minds memory keys and historical memory logs.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend**: React 18, TypeScript 5.5, Vite 5, TailwindCSS, Lucide Icons, Framer Motion.
 - **AI Core**: Minds Client Lib (`@animocabrands/minds-client-lib`), HelloMinds Builder API.
@@ -128,7 +128,7 @@ const outcome = await client.waitForReply({ alias: 'repurpose-main', timeoutMs: 
 
 ---
 
-## 🚀 Getting Started Locally
+## Getting Started Locally
 
 ### 1. Clone the Repository
 ```bash
@@ -161,12 +161,12 @@ npm run build
 
 ---
 
-## 📄 License
+## License
 
 Distributed under the **MIT License**. See `LICENSE` for more information.
 
 ---
 
 <div align="center">
-Built with ❤️ for digital creators and submitted to <b>Creative Minds Jam #1</b>.
+Built for digital creators and submitted to <b>Creative Minds Jam #1</b>.
 </div>

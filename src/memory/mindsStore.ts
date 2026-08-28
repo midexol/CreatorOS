@@ -48,7 +48,7 @@ export const DEMO_SEED = {
       opportunityId: "opp_1",
       platform: "instagram" as const,
       hook: "AI agents without memory are glorified search bars.",
-      body: "Here is how persistent multi-session state changes everything for AI builders in 2026 📸👇\n\n1. Single-session LLMs forget your context the second you refresh.\n2. Autonomous memory namespaces allow agents to write past performance back into state.\n3. Content agents learn what hook styles perform 35% better and adapt autonomously.",
+      body: "Here is how persistent multi-session state changes everything for AI builders in 2026:\n\n1. Single-session LLMs forget your context the second you refresh.\n2. Autonomous memory namespaces allow agents to write past performance back into state.\n3. Content agents learn what hook styles perform 35% better and adapt autonomously.",
       cta: "What memory architecture are you using for your agents?",
       status: "pending_approval" as const,
       createdAt: "Just now",

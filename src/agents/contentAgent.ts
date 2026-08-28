@@ -44,35 +44,35 @@ export class ContentAgent {
 
     switch (style) {
       case 'contrarian':
-        if (platform === 'instagram') return `${contrarianVariant} 📸👇`;
+        if (platform === 'instagram') return `${contrarianVariant}`;
         if (platform === 'youtube_shorts') return `Stop. The biggest myth about ${topic} is costing you views.`;
         if (platform === 'youtube_longform') return `Why 90% of creators fail at ${topic} (And how to fix it).`;
         if (platform === 'linkedin') return `${contrarianVariant}`;
         return `Everyone is wrong about ${topic}. Here is what the real data shows:`;
 
       case 'question':
-        if (platform === 'instagram') return `Ever wonder why ${topic} is quietly taking over creator workflows? 🤔`;
+        if (platform === 'instagram') return `Ever wonder why ${topic} is quietly taking over creator workflows?`;
         if (platform === 'youtube_shorts') return `What if ${topic} was 10x easier than everyone makes it look?`;
         if (platform === 'youtube_longform') return `Is ${topic} the single biggest leverage point for creators in 2026?`;
         if (platform === 'linkedin') return `Why are so few builders talking about the real mechanics of ${topic}?`;
         return `What if ${topic} isn't what you think it is?`;
 
       case 'stat':
-        if (platform === 'instagram') return `The breakdown behind ${topic} (Key Metric Insights) 📈`;
+        if (platform === 'instagram') return `The breakdown behind ${topic} (Key Metric Insights)`;
         if (platform === 'youtube_shorts') return `${topic} just generated a +36% retention spike. Here's why.`;
         if (platform === 'youtube_longform') return `The complete data breakdown on ${topic} (Real Analytics).`;
         if (platform === 'linkedin') return `The numbers on ${topic} are in — and they're bigger than expected.`;
         return `${topic} just moved the needle by double digits. Here's the breakdown.`;
 
       case 'story':
-        if (platform === 'instagram') return `Last week we tested ${topic} in production. Here's what happened 📸`;
+        if (platform === 'instagram') return `Last week we tested ${topic} in production. Here's what happened`;
         if (platform === 'youtube_shorts') return `[VISUAL: Solo creator screen recording] Here is what happened with ${topic}.`;
         if (platform === 'youtube_longform') return `How we built a multi-agent system around ${topic}.`;
         if (platform === 'linkedin') return `I watched ${topic} unfold across 500 posts. Here are the 3 big takeaways:`;
         return `I almost missed this: ${topic} is quietly changing everything.`;
 
       default:
-        if (platform === 'instagram') return `A fast 30-second breakdown on ${topic} 📸`;
+        if (platform === 'instagram') return `A fast 30-second breakdown on ${topic}`;
         if (platform === 'youtube_shorts') return `Here is the fastest way to master ${topic} in 30 seconds.`;
         if (platform === 'youtube_longform') return `The definitive guide to ${topic} for digital creators.`;
         if (platform === 'linkedin') return `Most creators are sleeping on ${topic}. Here's what the data shows:`;
@@ -84,7 +84,7 @@ export class ContentAgent {
     const scoreLine = viralityScore ? `Virality Score: ${viralityScore}/100\n` : '';
 
     if (platform === 'instagram') {
-      return `Here is why this matters and how to stay ahead 📸👇\n\n1. Key Angle: ${angle}\n2. Trend Source: ${source}\n${scoreLine}\nMinds memory agents automatically learn from past post engagement to improve future hooks.`;
+      return `Here is why this matters and how to stay ahead:\n\n1. Key Angle: ${angle}\n2. Trend Source: ${source}\n${scoreLine}\nMinds memory agents automatically learn from past post engagement to improve future hooks.`;
     }
     if (platform === 'youtube_shorts') {
       return `[VISUAL: Solo creator screen-recording agent workflow]\n[AUDIO: Fast-paced synth beat]\n\n[0:00-0:03 HOOK: Stop. The biggest myth about ${topic} is costing you reach.]\n[0:03-0:22 EXPLAINER: ${angle}]\n${viralityScore ? `[TEXT ON SCREEN: Retention Prediction ${viralityScore}%]\n` : ''}[0:22-0:30 CTA: Try this setup and see if your reach doubles!]`;
@@ -95,12 +95,12 @@ export class ContentAgent {
     if (platform === 'linkedin') {
       return `Over the past week, trend signals highlighted this topic for creator growth potential.\n\nKey Takeaway:\n${angle}\n\nTrend Source: ${source}\n\nBy leveraging persistent multi-agent memory, creators no longer have to spend 4 hours daily repurposing manually.`;
     }
-    return `Here is why this matters and how to stay ahead 👇\n\n1. Angle: ${angle}\n2. Source: ${source}.\n3. Persistence Loop: Minds agents write performance metrics back into state autonomously.`;
+    return `Here is why this matters and how to stay ahead:\n\n1. Angle: ${angle}\n2. Source: ${source}.\n3. Persistence Loop: Minds agents write performance metrics back into state autonomously.`;
   }
 
   private craftCta(style: HookStyle, platform: Platform, topic: string): string {
     if (platform === 'instagram') {
-      return style === 'question' ? `Drop a comment below with your take on ${topic}! 👇` : `Save & Share this post with a fellow creator testing ${topic}!`;
+      return style === 'question' ? `Drop a comment below with your take on ${topic}!` : `Save & Share this post with a fellow creator testing ${topic}!`;
     }
     if (platform === 'youtube_shorts') {
       return `Subscribe for daily AI creator breakdowns!`;
